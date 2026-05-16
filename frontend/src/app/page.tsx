@@ -13,7 +13,7 @@ export default function LibraryReaderPage() {
   const player = useSpeechPlayer();
   const { words, currentIndex, isPlaying, isProcessing, wpm, setWpm, selectedBook, currentChapterIdx } = player;
 
-  // Frontend UI Workspace Controllers
+  // Frontend Configuration Controllers
   const [useAnchor, setUseAnchor] = useState<boolean>(true);
   const [useTTS, setUseTTS] = useState<boolean>(true);
   const [showLibrary, setShowLibrary] = useState<boolean>(false);
@@ -23,13 +23,11 @@ export default function LibraryReaderPage() {
 
   const visualTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Sync ref wrappers for pure visual loops
   const localRefState = useRef({ currentIndex, words, isPlaying, useTTS, wpm });
   useEffect(() => {
     localRefState.current = { currentIndex, words, isPlaying, useTTS, wpm };
   }, [currentIndex, words, isPlaying, useTTS, wpm]);
 
-  // Handle Fetch Operations
   const refreshLibraryList = async () => {
     try {
       const res = await fetch("http://localhost:8090/api/v1/library/books");
@@ -45,7 +43,6 @@ export default function LibraryReaderPage() {
       setChaptersList(data.chapters || []);
       player.setTotalChaptersCount(data.chapters?.length || 0);
       
-      // Auto pre-load initial chapter
       if (data.chapters && data.chapters.length > 0) {
         await player.fetchChapterStream(bookName, 0);
       }
@@ -63,13 +60,11 @@ export default function LibraryReaderPage() {
     } catch (err) { console.error("Upload interface failure:", err); }
   };
 
-  // AUTOMATED NEXT-CHAPTER NAVIGATION ROUTER
   const loadNextSequentialChapter = async () => {
     if (!selectedBook) return;
     const nextIdx = currentChapterIdx + 1;
     if (nextIdx < chaptersList.length) {
       await player.fetchChapterStream(selectedBook, nextIdx);
-      // Continuous Auto Play across chapter gaps
       setTimeout(() => player.play(useTTS), 400);
     } else {
       alert("End of book structure reached!");
@@ -84,13 +79,11 @@ export default function LibraryReaderPage() {
     }
   };
 
-  // Assign hook triggers
   useEffect(() => {
     player.onChapterFinishedRef.current = loadNextSequentialChapter;
     refreshLibraryList();
   }, [selectedBook, currentChapterIdx, chaptersList, useTTS]);
 
-  // Pure Visual Execution Engine Hook
   useEffect(() => {
     if (visualTimerRef.current) clearInterval(visualTimerRef.current);
     if (isPlaying && !useTTS) {
@@ -145,7 +138,7 @@ export default function LibraryReaderPage() {
   return (
     <main className="relative w-full h-dvh overflow-hidden flex flex-col justify-between bg-black text-white">
       
-      {/* BACKGROUND SCENIC CANVAS */}
+      {/* SCENIC BACKGROUND CANVAS */}
       <div className="absolute inset-0 opacity-20 pointer-events-none z-0">
         <div className="w-full h-full bg-gradient-to-tr from-purple-900/40 via-transparent to-black" />
       </div>
@@ -187,21 +180,21 @@ export default function LibraryReaderPage() {
         )}
       </section>
 
-      {/* FOOTER CORE INTERFACE CONTROL MECHANICS */}
+      {/* CORE INTERFACE CONTROL MECHANICS */}
       <footer className="relative z-10 w-full px-6 pb-8 pt-4 bg-gradient-to-t from-black via-black/95 to-transparent flex flex-col gap-4">
         
-        {/* CHAPTER DIRECTIONAL NAV BOARD */}
+        {/* CHAPTER NAVIGATION BAR */}
         <div className="flex items-center justify-between bg-white/5 p-1 rounded-xl border border-white/5">
           <button onClick={loadPreviousSequentialChapter} disabled={!selectedBook || currentChapterIdx === 0} className="px-4 py-2 text-xs font-bold text-white/60 disabled:opacity-20">
-            ⏮ Prev Chapter
+            &lt; Chapter
           </button>
-          <span className="text-[10px] font-mono tracking-widest text-purple-400 uppercase font-bold">Chapter Routing</span>
+          <span className="text-[10px] font-mono tracking-widest text-purple-400 uppercase font-bold">Chapters</span>
           <button onClick={loadNextSequentialChapter} disabled={!selectedBook || currentChapterIdx >= chaptersList.length - 1} className="px-4 py-2 text-xs font-bold text-white/60 disabled:opacity-20">
-            Next Chapter ⏭
+            Chapter &gt;
           </button>
         </div>
 
-        {/* TOGGLE MATRIX SLIDERS */}
+        {/* TOGGLE MATRIX DECK */}
         <div className="grid grid-cols-2 gap-3">
           <div className="flex items-center justify-between bg-white/5 rounded-xl p-3 border border-white/5">
             <span className="text-xs font-bold text-white/80">ORP Anchor</span>
@@ -217,38 +210,66 @@ export default function LibraryReaderPage() {
           </div>
         </div>
 
-        {/* SPEED RANGE SELECTOR */}
+        {/* SPEED SELECTOR SLIDER */}
         <div className="flex flex-col gap-1 w-full">
           <div className="flex justify-between items-center text-[10px] font-bold text-white/40 tracking-wider uppercase font-mono">
-            <span>VELOCITY RATE</span>
+            <span>VELOCITY SPEED</span>
             <span className="text-purple-400 font-black">{wpm} WPM</span>
           </div>
           <input type="range" min="100" max="600" step="25" value={wpm} onChange={(e) => setWpm(Number(e.target.value))} className="w-full accent-purple-500 bg-white/10 h-1 rounded-md appearance-none" />
         </div>
 
-        {/* MASTER INTERACTION ACTIVATOR */}
-        <div className="w-full flex justify-center pt-2">
-          <button onClick={togglePlaybackState} disabled={words.length === 0} className={`w-16 h-16 rounded-full font-bold flex items-center justify-center transition active:scale-95 disabled:opacity-20 ${isPlaying ? "bg-white text-black" : "bg-gradient-to-tr from-purple-600 to-pink-500 text-white"}`}>
+        {/* MASTER INTERACTION ACTIVATOR DECK */}
+        <div className="w-full flex justify-center items-center gap-6 pt-2">
+          
+          {/* REWIND ACTION CONTROL */}
+          <button
+            onClick={() => player.rewind(useTTS)}
+            disabled={words.length === 0 || currentIndex === 0}
+            className="w-12 h-12 rounded-full font-mono text-xs font-black bg-white/10 text-white/70 border border-white/5 flex items-center justify-center transition active:scale-90 disabled:opacity-10 disabled:pointer-events-none hover:bg-white/20"
+            title="Rewind 4 seconds"
+          >
+            -4s
+          </button>
+
+          {/* CENTRAL PLAY/PAUSE TRIGGER */}
+          <button 
+            onClick={togglePlaybackState} 
+            disabled={words.length === 0} 
+            className={`w-16 h-16 rounded-full font-bold flex items-center justify-center transition active:scale-95 disabled:opacity-20 shadow-md ${
+              isPlaying ? "bg-white text-black" : "bg-gradient-to-tr from-purple-600 to-pink-500 text-white"
+            }`}
+          >
             {isPlaying ? "⏸" : "▶"}
           </button>
+
+          {/* FAST-FORWARD ACTION CONTROL */}
+          <button
+            onClick={() => player.fastForward(useTTS)}
+            disabled={words.length === 0 || currentIndex >= words.length - 1}
+            className="w-12 h-12 rounded-full font-mono text-xs font-black bg-white/10 text-white/70 border border-white/5 flex items-center justify-center transition active:scale-90 disabled:opacity-10 disabled:pointer-events-none hover:bg-white/20"
+            title="Fast forward 4 seconds"
+          >
+            +4s
+          </button>
+
         </div>
       </footer>
 
-      {/* FLYOUT OVERLAY COMPONENT: EBOOK STORAGE MANAGEMENT LIBRARY */}
+      {/* FLYOUT OVERLAY COMPONENT: LIBRARY DIALOG CONTAINER */}
       {showLibrary && (
         <div className="absolute inset-0 bg-black/95 z-50 flex flex-col p-6 animate-fade-in">
           <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
-            <h2 className="text-lg font-black tracking-tight text-purple-400 uppercase">Epub Storage Vault</h2>
+            <h2 className="text-lg font-black tracking-tight text-purple-400 uppercase">Epub Vault Shelf</h2>
             <button onClick={() => setShowLibrary(false)} className="text-xs font-bold bg-white/10 px-3 py-1.5 rounded-full hover:bg-white/20">
               ✕ Close
             </button>
           </div>
 
           <div className="flex-1 grid grid-cols-2 gap-4 overflow-hidden">
-            {/* LEFT COMPONENT COLUMN: BOOKS DIRECTORIES LIST */}
             <div className="flex flex-col gap-2 overflow-y-auto pr-2 border-r border-white/5">
               <span className="text-[10px] font-mono tracking-widest text-white/40 uppercase font-bold mb-1">Select Book</span>
-              {booksList.length === 0 ? <p className="text-xs text-white/30 italic">No books in archive.</p> : 
+              {booksList.length === 0 ? <p className="text-xs text-white/30 italic">No books stored.</p> : 
                 booksList.map((book) => (
                   <button key={book} onClick={() => loadBookMetadata(book)} className={`text-left text-xs p-3 rounded-lg border font-medium truncate transition ${selectedBook === book ? "bg-purple-600/20 border-purple-500 text-white" : "bg-white/5 border-white/5 text-white/60 hover:bg-white/10"}`}>
                     📖 {book}
@@ -256,10 +277,9 @@ export default function LibraryReaderPage() {
               ))}
             </div>
 
-            {/* RIGHT COMPONENT COLUMN: CHAPTER INDEX TRACKING MATRIX */}
             <div className="flex flex-col gap-2 overflow-y-auto pl-2">
               <span className="text-[10px] font-mono tracking-widest text-white/40 uppercase font-bold mb-1">Select Chapter</span>
-              {chaptersList.length === 0 ? <p className="text-xs text-white/30 italic">Select a book to view chapters.</p> : 
+              {chaptersList.length === 0 ? <p className="text-xs text-white/30 italic">Pick a book.</p> : 
                 chaptersList.map((ch) => (
                   <button key={ch.id} onClick={async () => { await player.fetchChapterStream(selectedBook!, ch.index); setShowLibrary(false); }} className={`text-left text-xs p-3 rounded-lg border font-mono truncate transition ${currentChapterIdx === ch.index ? "bg-purple-600/20 border-purple-500 text-white" : "bg-white/5 border-white/5 text-white/60 hover:bg-white/10"}`}>
                     {(ch.index + 1).toString().padStart(2, '0')}. {ch.title}

@@ -24,7 +24,6 @@ export function useSpeechPlayer() {
   currentIndexRef.current = currentIndex;
   wpmRef.current = wpm;
 
-  // Track boundary triggers for internal auto-advance routing
   const onChapterFinishedRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -39,13 +38,10 @@ export function useSpeechPlayer() {
     if (synthRef.current) synthRef.current.cancel();
   };
 
-  // --- CRITICAL HIGH-SPEED EXPONENTIAL MULTIPLIER ---
-  // Overrides native browser limits to force real 500+ WPM pacing
   const getCalculatedRate = (targetWpm: number): number => {
     if (targetWpm <= 150) return 0.8;
     if (targetWpm <= 300) return 1.5;
     if (targetWpm <= 450) return 3.2;
-    // Exponentially scale multiplier to bust through native caps
     return 5.0 + ((targetWpm - 450) / 40); 
   };
 
@@ -112,8 +108,6 @@ export function useSpeechPlayer() {
     if (!remainingText.trim()) return;
     
     const utterance = new SpeechSynthesisUtterance(remainingText);
-    
-    // FIXED: Now accurately using the non-linear high-speed curve calculation mapping
     utterance.rate = getCalculatedRate(wpmRef.current);
 
     let baseIndex = currentIndexRef.current;
@@ -147,8 +141,6 @@ export function useSpeechPlayer() {
     const chunk = wordsRef.current.slice(startIndex, startIndex + 15).join(" ");
     if (!chunk.trim()) return;
     const utterance = new SpeechSynthesisUtterance(chunk);
-    
-    // FIXED: Ensured mobile short chunks scale with the high-speed multiplier as well
     utterance.rate = getCalculatedRate(wpmRef.current);
     synthRef.current.speak(utterance);
   };
@@ -156,6 +148,43 @@ export function useSpeechPlayer() {
   const pause = () => {
     cleanup();
     setIsPlaying(false);
+  };
+
+  // REWIND LOGIC ENGINE (Jumps back ~4 seconds)
+  const rewind = (useTTS: boolean = true) => {
+    const wordStep = Math.max(15, Math.round((wpmRef.current / 60) * 4));
+    const newIndex = Math.max(0, currentIndexRef.current - wordStep);
+    
+    currentIndexRef.current = newIndex;
+    setCurrentIndex(newIndex);
+    syncNavigationSeek(newIndex, useTTS);
+  };
+
+  // FAST-FORWARD LOGIC ENGINE (Jumps forward ~4 seconds)
+  const fastForward = (useTTS: boolean = true) => {
+    const wordStep = Math.max(15, Math.round((wpmRef.current / 60) * 4));
+    const maxIndex = wordsRef.current.length - 1;
+    const newIndex = Math.min(maxIndex, currentIndexRef.current + wordStep);
+    
+    currentIndexRef.current = newIndex;
+    setCurrentIndex(newIndex);
+    syncNavigationSeek(newIndex, useTTS);
+  };
+
+  // Centralized background controller to safely restart streams after a timeline jump
+  const syncNavigationSeek = (targetIndex: number, useTTS: boolean) => {
+    if (isPlaying) {
+      cleanup();
+      if (!useTTS) return;
+      
+      if (isMobileDevice()) {
+        const msPerWord = (60 / wpmRef.current) * 1000;
+        timerRef.current = setInterval(runMobileTimerTick, msPerWord);
+        speakMobileChunk(targetIndex);
+      } else {
+        executeLaptopPlay();
+      }
+    }
   };
 
   const fetchChapterStream = async (bookName: string, chapterIdx: number) => {
@@ -213,6 +242,8 @@ export function useSpeechPlayer() {
     fetchChapterStream,
     play,
     pause,
+    rewind,
+    fastForward,
     setCurrentIndex,
     setIsPlaying,
     onChapterFinishedRef
