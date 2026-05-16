@@ -123,11 +123,25 @@ brainrot_reader/
 ├── backend/
 │   ├── Dockerfile
 │   ├── .dockerignore
-│   ├── main.py                   # FastAPI app with env-aware config + music endpoints
-│   ├── router.py                 # Additional API router
-│   ├── parsers.py                # ePub parsing utilities
+│   ├── main.py                   # FastAPI app (includes centralized api_router)
+│   ├── config.py                 # Centralized configuration (STORAGE_DIR, MUSIC_DIR)
 │   ├── pyproject.toml            # uv dependencies
-│   └── uv.lock
+│   ├── uv.lock
+│   ├── api/                      # API routing and HTTP endpoints
+│   │   ├── __init__.py
+│   │   └── v1/
+│   │       ├── __init__.py
+│   │       ├── router.py         # Consolidated API router under /api/v1
+│   │       └── endpoints/        # Pure API route handlers (no business logic)
+│   │           ├── __init__.py
+│   │           ├── library.py    # Library & ePub endpoints
+│   │           ├── music.py      # Music uploads, downloads & lists
+│   │           └── parsers.py    # In-memory ePub parser stream endpoint
+│   └── services/                 # Decoupled backend business logic
+│       ├── __init__.py
+│       ├── library.py            # ePub processing & chunk generator logic
+│       ├── music.py              # Track listing, track deletion & yt-dlp downloader
+│       └── parsers.py            # In-memory ePub zip parsing operations
 └── frontend/
     ├── Dockerfile
     ├── .dockerignore
