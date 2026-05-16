@@ -8,10 +8,12 @@ services:
       - "${BACKEND_PORT:-8090}:8090"
     volumes:
       - epubs-data:/app/epubs
+      - music-data:/app/music
     env_file:
       - .env
     environment:
       - STORAGE_DIR=/app/epubs
+      - MUSIC_DIR=/app/music
     restart: unless-stopped
 
   frontend:
@@ -31,3 +33,4 @@ services:
 
 volumes:
   epubs-data:
+  music-data:

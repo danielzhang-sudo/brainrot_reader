@@ -8,6 +8,7 @@ A self-hosted, Dockerized Progressive Web App (PWA) for speed-reading ePub books
 - **Chapter Streaming** — Backend streams chapter words in chunks for low memory usage.
 - **RSVP Speed Reader** — Word-by-word display with an adjustable ORP (Optimal Recognition Point) anchor.
 - **TTS Synchronization** — Browser-native speech synthesis synced to the visual word stream.
+- **Background Music** — Upload MP3 files or paste YouTube links to play ambient music while reading. Independent volume and loop controls.
 - **Mobile Ready** — Responsive font sizes and PWA support for installation on phones.
 - **Dockerized** — One-command setup with Docker Compose.
 
@@ -45,6 +46,7 @@ cat .env
 | `BACKEND_PORT` | `8090` | Port the backend exposes |
 | `CORS_ORIGINS` | `*` | Allowed CORS origins (comma-separated) |
 | `STORAGE_DIR` | `/app/epubs` | Path where uploaded ePubs are stored |
+| `MUSIC_DIR` | `/app/music` | Path where uploaded music tracks are stored |
 | `FRONTEND_PORT` | `3000` | Port the frontend exposes |
 | `NEXT_PUBLIC_API_URL` | *(empty)* | Optional hardcoded backend URL. If empty, the frontend auto-detects `http://<browser-host>:8090` |
 
@@ -121,7 +123,7 @@ brainrot_reader/
 ├── backend/
 │   ├── Dockerfile
 │   ├── .dockerignore
-│   ├── main.py                   # FastAPI app with env-aware config
+│   ├── main.py                   # FastAPI app with env-aware config + music endpoints
 │   ├── router.py                 # Additional API router
 │   ├── parsers.py                # ePub parsing utilities
 │   ├── pyproject.toml            # uv dependencies
@@ -132,10 +134,11 @@ brainrot_reader/
     ├── next.config.ts            # Next.js config (standalone output)
     ├── src/
     │   ├── app/
-    │   │   ├── page.tsx          # Main reader UI
+    │   │   ├── page.tsx          # Main reader UI with music panel
     │   │   └── layout.tsx        # Root layout with PWA viewport
     │   └── hooks/
-    │       └── useSpeechPlayer.ts # Speech & playback logic
+    │       ├── useSpeechPlayer.ts # Speech & playback logic
+    │       └── useMusicPlayer.ts  # Background music logic
     └── public/
         └── manifest.json         # PWA manifest
 ```
@@ -144,3 +147,4 @@ brainrot_reader/
 
 - The frontend auto-detects the backend host from the browser's current hostname when `NEXT_PUBLIC_API_URL` is left empty. This works out of the box for both `localhost` and LAN access.
 - Uploaded ePubs are persisted in a Docker volume (`epubs-data`) so they survive container restarts.
+- Music tracks (MP3 uploads and YouTube downloads) are persisted in a Docker volume (`music-data`).

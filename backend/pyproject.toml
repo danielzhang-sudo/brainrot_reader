@@ -10,4 +10,5 @@ dependencies = [
     "fastapi>=0.136.1",
     "python-multipart>=0.0.28",
     "uvicorn>=0.47.0",
+    "yt-dlp>=2025.5.1",
 ]
