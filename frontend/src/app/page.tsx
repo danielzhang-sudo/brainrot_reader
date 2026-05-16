@@ -3,6 +3,10 @@
 import React, { ChangeEvent, useState, useEffect, useRef } from "react";
 import { useSpeechPlayer } from "@/hooks/useSpeechPlayer";
 
+const API_BASE = typeof window !== "undefined"
+  ? `http://${window.location.hostname}:8090`
+  : "http://localhost:8090";
+
 interface ChapterItem {
   index: number;
   id: string;
@@ -11,7 +15,7 @@ interface ChapterItem {
 
 export default function LibraryReaderPage() {
   const player = useSpeechPlayer();
-  const { words, currentIndex, isPlaying, isProcessing, wpm, setWpm, selectedBook, currentChapterIdx } = player;
+  const { words, currentIndex, isPlaying, isProcessing, wpm, setWpm, selectedBook, currentChapterIdx, availableVoices, selectedVoice, setSelectedVoice } = player;
 
   // Frontend Configuration Controllers
   const [useAnchor, setUseAnchor] = useState<boolean>(true);
@@ -37,7 +41,7 @@ export default function LibraryReaderPage() {
 
   const refreshLibraryList = async () => {
     try {
-      const res = await fetch("http://localhost:8090/api/v1/library/books");
+      const res = await fetch(`${API_BASE}/api/v1/library/books`);
       const data = await res.json();
       setBooksList(data.books || []);
     } catch (e) { console.error("Error accessing server book index:", e); }
@@ -45,11 +49,11 @@ export default function LibraryReaderPage() {
 
   const loadBookMetadata = async (bookName: string) => {
     try {
-      const res = await fetch(`http://localhost:8090/api/v1/library/chapters?book=${encodeURIComponent(bookName)}`);
+      const res = await fetch(`${API_BASE}/api/v1/library/chapters?book=${encodeURIComponent(bookName)}`);
       const data = await res.json();
       setChaptersList(data.chapters || []);
       player.setTotalChaptersCount(data.chapters?.length || 0);
-      
+
       if (data.chapters && data.chapters.length > 0) {
         await player.fetchChapterStream(bookName, 0);
       }
@@ -62,7 +66,7 @@ export default function LibraryReaderPage() {
     formData.append("file", e.target.files[0]);
 
     try {
-      await fetch("http://localhost:8090/api/v1/library/upload", { method: "POST", body: formData });
+      await fetch(`${API_BASE}/api/v1/library/upload`, { method: "POST", body: formData });
       await refreshLibraryList();
     } catch (err) { console.error("Upload interface failure:", err); }
   };
@@ -253,6 +257,31 @@ export default function LibraryReaderPage() {
             </button>
           </div>
         </div>
+
+        {/* VOICE SELECTOR */}
+        {useTTS && availableVoices.length > 0 && (
+          <div className="flex flex-col gap-1 w-full">
+            <div className="flex justify-between items-center text-[10px] font-bold text-white/40 tracking-wider uppercase font-mono">
+              <span>TTS Voice</span>
+              <span className="text-purple-400 font-black truncate max-w-[60%] text-right">{selectedVoice?.name || "Default"}</span>
+            </div>
+            <select
+              value={selectedVoice?.voiceURI || ""}
+              onChange={(e) => {
+                const voice = availableVoices.find((v) => v.voiceURI === e.target.value) || null;
+                setSelectedVoice(voice);
+              }}
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white/80 focus:outline-none focus:border-purple-500 appearance-none"
+              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center" }}
+            >
+              {availableVoices.map((voice) => (
+                <option key={voice.voiceURI} value={voice.voiceURI} className="bg-black text-white">
+                  {voice.name} ({voice.lang})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* SPEED SELECTOR SLIDER */}
         <div className="flex flex-col gap-1 w-full">

@@ -1,37 +1,74 @@
 import { useState, useRef, useEffect } from "react";
 
+const API_BASE = typeof window !== "undefined"
+  ? `http://${window.location.hostname}:8090`
+  : "http://localhost:8090";
+
 export function useSpeechPlayer() {
   const [words, setWords] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [wpm, setWpmState] = useState<number>(250);
-  
+
   // Library Focus Navigation States
   const [selectedBook, setSelectedBook] = useState<string | null>(null);
   const [currentChapterIdx, setCurrentChapterIdx] = useState<number>(0);
   const [totalChaptersCount, setTotalChaptersCount] = useState<number>(0);
 
+  // Voice selection state
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoice, setSelectedVoiceState] = useState<SpeechSynthesisVoice | null>(null);
+
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   const wordsRef = useRef<string[]>([]);
   const currentIndexRef = useRef<number>(0);
   const wpmRef = useRef<number>(250);
+  const selectedVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
 
   wordsRef.current = words;
   currentIndexRef.current = currentIndex;
   wpmRef.current = wpm;
+  selectedVoiceRef.current = selectedVoice;
 
   const onChapterFinishedRef = useRef<(() => void) | null>(null);
+
+  const loadVoices = () => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length === 0) return;
+    setAvailableVoices(voices);
+    if (!selectedVoiceRef.current) {
+      const defaultVoice = voices.find((v) => v.default) || voices[0];
+      setSelectedVoiceState(defaultVoice);
+      selectedVoiceRef.current = defaultVoice;
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       synthRef.current = window.speechSynthesis;
+      loadVoices();
+      window.speechSynthesis.onvoiceschanged = loadVoices;
     }
     return () => cleanup();
   }, []);
+
+  const setSelectedVoice = (voice: SpeechSynthesisVoice | null) => {
+    setSelectedVoiceState(voice);
+    selectedVoiceRef.current = voice;
+    if (isPlaying && synthRef.current) {
+      synthRef.current.cancel();
+      if (isMobileDevice()) {
+        speakMobileChunk(currentIndexRef.current);
+      } else {
+        executeLaptopPlay();
+      }
+    }
+  };
 
   const cleanup = () => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -109,6 +146,9 @@ export function useSpeechPlayer() {
     
     const utterance = new SpeechSynthesisUtterance(remainingText);
     utterance.rate = getCalculatedRate(wpmRef.current);
+    if (selectedVoiceRef.current) {
+      utterance.voice = selectedVoiceRef.current;
+    }
 
     let baseIndex = currentIndexRef.current;
     let lastWordCharPos = -1;
@@ -142,6 +182,9 @@ export function useSpeechPlayer() {
     if (!chunk.trim()) return;
     const utterance = new SpeechSynthesisUtterance(chunk);
     utterance.rate = getCalculatedRate(wpmRef.current);
+    if (selectedVoiceRef.current) {
+      utterance.voice = selectedVoiceRef.current;
+    }
     synthRef.current.speak(utterance);
   };
 
@@ -202,7 +245,7 @@ export function useSpeechPlayer() {
 
     try {
       const response = await fetch(
-        `http://localhost:8090/api/v1/library/stream-chapter?book=${encodeURIComponent(bookName)}&chapter_index=${chapterIdx}`
+        `${API_BASE}/api/v1/library/stream-chapter?book=${encodeURIComponent(bookName)}&chapter_index=${chapterIdx}`
       );
       if (!response.body) return;
 
@@ -245,6 +288,9 @@ export function useSpeechPlayer() {
     currentChapterIdx,
     totalChaptersCount,
     setTotalChaptersCount,
+    availableVoices,
+    selectedVoice,
+    setSelectedVoice,
     fetchChapterStream,
     play,
     pause,
