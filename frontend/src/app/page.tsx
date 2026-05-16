@@ -21,7 +21,14 @@ export default function LibraryReaderPage() {
   const [booksList, setBooksList] = useState<string[]>([]);
   const [chaptersList, setChaptersList] = useState<ChapterItem[]>([]);
 
+  // Hover Tooltip States
+  const [hoverText, setHoverText] = useState<string>("");
+  const [hoverX, setHoverX] = useState<number>(0);
+  const [hoverY, setHoverY] = useState<number>(0);
+  const [showTooltip, setShowTooltip] = useState<boolean>(false);
+
   const visualTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const progressBarRef = useRef<HTMLDivElement | null>(null);
 
   const localRefState = useRef({ currentIndex, words, isPlaying, useTTS, wpm });
   useEffect(() => {
@@ -114,6 +121,32 @@ export default function LibraryReaderPage() {
     }
   };
 
+  const handleProgressBarMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!progressBarRef.current || words.length === 0) return;
+    const rect = progressBarRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percentage = Math.max(0, Math.min(100, (clickX / rect.width) * 100));
+    
+    const targetWordIdx = Math.round((percentage / 100) * (words.length - 1));
+    const previewSnippet = words.slice(Math.max(0, targetWordIdx - 3), Math.min(words.length, targetWordIdx + 4)).join(" ");
+    
+    setHoverText(`"${previewSnippet}..."`);
+    setHoverX(e.clientX);
+    // Align dynamically to the absolute top of the tracked element box boundaries
+    setHoverY(rect.top - window.scrollY);
+    setShowTooltip(true);
+  };
+
+  const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!progressBarRef.current || words.length === 0) return;
+    const rect = progressBarRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percentage = Math.max(0, Math.min(100, (clickX / rect.width) * 100));
+    player.seekToPercent(percentage, useTTS);
+  };
+
+  const currentPercentage = words.length > 0 ? (currentIndex / (words.length - 1)) * 100 : 0;
+
   const renderWordWithAnchor = (word: string) => {
     if (!word) return null;
     let anchorIdx = 1;
@@ -180,6 +213,17 @@ export default function LibraryReaderPage() {
         )}
       </section>
 
+      {/* FLOATING HOVER PREVIEW TEXT TOOLTIP */}
+      {showTooltip && words.length > 0 && (
+        <div 
+          className="fixed z-50 bg-purple-950/95 text-white border border-purple-500/50 text-xs px-3 py-2 rounded-xl pointer-events-none max-w-xs shadow-xl backdrop-blur-md -translate-x-1/2 -translate-y-[115%]"
+          style={{ left: `${hoverX}px`, top: `${hoverY}px` }}
+        >
+          <p className="font-sans leading-relaxed text-center text-purple-200">{hoverText}</p>
+          <div className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-3 h-3 bg-purple-950 border-r border-b border-purple-500/50 rotate-45" />
+        </div>
+      )}
+
       {/* CORE INTERFACE CONTROL MECHANICS */}
       <footer className="relative z-10 w-full px-6 pb-8 pt-4 bg-gradient-to-t from-black via-black/95 to-transparent flex flex-col gap-4">
         
@@ -219,41 +263,66 @@ export default function LibraryReaderPage() {
           <input type="range" min="100" max="600" step="25" value={wpm} onChange={(e) => setWpm(Number(e.target.value))} className="w-full accent-purple-500 bg-white/10 h-1 rounded-md appearance-none" />
         </div>
 
-        {/* MASTER INTERACTION ACTIVATOR DECK */}
-        <div className="w-full flex justify-center items-center gap-6 pt-2">
+        {/* DYNAMIC COMBINED TIMELINE & CONTROL UNIT BLOCK */}
+        <div className="w-full bg-white/5 border border-white/5 rounded-2xl p-4 flex flex-col gap-4">
           
-          {/* REWIND ACTION CONTROL */}
-          <button
-            onClick={() => player.rewind(useTTS)}
-            disabled={words.length === 0 || currentIndex === 0}
-            className="w-12 h-12 rounded-full font-mono text-xs font-black bg-white/10 text-white/70 border border-white/5 flex items-center justify-center transition active:scale-90 disabled:opacity-10 disabled:pointer-events-none hover:bg-white/20"
-            title="Rewind 4 seconds"
-          >
-            -4s
-          </button>
+          {/* TIMELINE PROGRESS ELEMENT (Now inside layout directly above tracking deck buttons) */}
+          <div className="w-full flex flex-col gap-1">
+            <div 
+              ref={progressBarRef}
+              onClick={handleProgressBarClick}
+              onMouseMove={handleProgressBarMouseMove}
+              onMouseLeave={() => setShowTooltip(false)}
+              className="w-full h-2.5 bg-white/10 rounded-full cursor-pointer relative overflow-hidden group border border-white/5 transition hover:h-3"
+            >
+              <div 
+                className="h-full bg-gradient-to-r from-purple-600 to-pink-500 transition-all duration-100 ease-out"
+                style={{ width: `${currentPercentage}%` }}
+              />
+            </div>
+            <div className="flex justify-between font-mono text-[8px] text-white/30 tracking-wider">
+              <span>TRACKING TIMELINE</span>
+              <span>{Math.round(currentPercentage)}% DONE</span>
+            </div>
+          </div>
 
-          {/* CENTRAL PLAY/PAUSE TRIGGER */}
-          <button 
-            onClick={togglePlaybackState} 
-            disabled={words.length === 0} 
-            className={`w-16 h-16 rounded-full font-bold flex items-center justify-center transition active:scale-95 disabled:opacity-20 shadow-md ${
-              isPlaying ? "bg-white text-black" : "bg-gradient-to-tr from-purple-600 to-pink-500 text-white"
-            }`}
-          >
-            {isPlaying ? "⏸" : "▶"}
-          </button>
+          {/* PLAY/PAUSE, REWIND, FAST-FORWARD DECK BUTTONS */}
+          <div className="w-full flex justify-center items-center gap-6">
+            
+            {/* REWIND */}
+            <button
+              onClick={() => player.rewind(useTTS)}
+              disabled={words.length === 0 || currentIndex === 0}
+              className="w-12 h-12 rounded-full font-mono text-xs font-black bg-white/10 text-white/70 border border-white/5 flex items-center justify-center transition active:scale-90 disabled:opacity-10 disabled:pointer-events-none hover:bg-white/20"
+              title="Rewind 4 seconds"
+            >
+              -4s
+            </button>
 
-          {/* FAST-FORWARD ACTION CONTROL */}
-          <button
-            onClick={() => player.fastForward(useTTS)}
-            disabled={words.length === 0 || currentIndex >= words.length - 1}
-            className="w-12 h-12 rounded-full font-mono text-xs font-black bg-white/10 text-white/70 border border-white/5 flex items-center justify-center transition active:scale-90 disabled:opacity-10 disabled:pointer-events-none hover:bg-white/20"
-            title="Fast forward 4 seconds"
-          >
-            +4s
-          </button>
+            {/* MAIN TOGGLE */}
+            <button 
+              onClick={togglePlaybackState} 
+              disabled={words.length === 0} 
+              className={`w-16 h-16 rounded-full font-bold flex items-center justify-center transition active:scale-95 disabled:opacity-20 shadow-md ${
+                isPlaying ? "bg-white text-black" : "bg-gradient-to-tr from-purple-600 to-pink-500 text-white"
+              }`}
+            >
+              {isPlaying ? "⏸" : "▶"}
+            </button>
 
+            {/* FAST-FORWARD */}
+            <button
+              onClick={() => player.fastForward(useTTS)}
+              disabled={words.length === 0 || currentIndex >= words.length - 1}
+              className="w-12 h-12 rounded-full font-mono text-xs font-black bg-white/10 text-white/70 border border-white/5 flex items-center justify-center transition active:scale-90 disabled:opacity-10 disabled:pointer-events-none hover:bg-white/20"
+              title="Fast forward 4 seconds"
+            >
+              +4s
+            </button>
+
+          </div>
         </div>
+
       </footer>
 
       {/* FLYOUT OVERLAY COMPONENT: LIBRARY DIALOG CONTAINER */}

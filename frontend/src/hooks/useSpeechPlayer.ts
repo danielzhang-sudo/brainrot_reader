@@ -150,7 +150,6 @@ export function useSpeechPlayer() {
     setIsPlaying(false);
   };
 
-  // REWIND LOGIC ENGINE (Jumps back ~4 seconds)
   const rewind = (useTTS: boolean = true) => {
     const wordStep = Math.max(15, Math.round((wpmRef.current / 60) * 4));
     const newIndex = Math.max(0, currentIndexRef.current - wordStep);
@@ -160,7 +159,6 @@ export function useSpeechPlayer() {
     syncNavigationSeek(newIndex, useTTS);
   };
 
-  // FAST-FORWARD LOGIC ENGINE (Jumps forward ~4 seconds)
   const fastForward = (useTTS: boolean = true) => {
     const wordStep = Math.max(15, Math.round((wpmRef.current / 60) * 4));
     const maxIndex = wordsRef.current.length - 1;
@@ -171,7 +169,15 @@ export function useSpeechPlayer() {
     syncNavigationSeek(newIndex, useTTS);
   };
 
-  // Centralized background controller to safely restart streams after a timeline jump
+  const seekToPercent = (percent: number, useTTS: boolean = true) => {
+    if (wordsRef.current.length === 0) return;
+    const targetIdx = Math.max(0, Math.min(wordsRef.current.length - 1, Math.round((percent / 100) * wordsRef.current.length)));
+    
+    currentIndexRef.current = targetIdx;
+    setCurrentIndex(targetIdx);
+    syncNavigationSeek(targetIdx, useTTS);
+  };
+
   const syncNavigationSeek = (targetIndex: number, useTTS: boolean) => {
     if (isPlaying) {
       cleanup();
@@ -244,6 +250,7 @@ export function useSpeechPlayer() {
     pause,
     rewind,
     fastForward,
+    seekToPercent,
     setCurrentIndex,
     setIsPlaying,
     onChapterFinishedRef
