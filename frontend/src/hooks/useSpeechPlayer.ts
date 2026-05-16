@@ -7,6 +7,11 @@ export function useSpeechPlayer() {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [wpm, setWpmState] = useState<number>(250);
   
+  // Library Focus Navigation States
+  const [selectedBook, setSelectedBook] = useState<string | null>(null);
+  const [currentChapterIdx, setCurrentChapterIdx] = useState<number>(0);
+  const [totalChaptersCount, setTotalChaptersCount] = useState<number>(0);
+
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -18,6 +23,9 @@ export function useSpeechPlayer() {
   wordsRef.current = words;
   currentIndexRef.current = currentIndex;
   wpmRef.current = wpm;
+
+  // Track boundary triggers for internal auto-advance routing
+  const onChapterFinishedRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -31,34 +39,24 @@ export function useSpeechPlayer() {
     if (synthRef.current) synthRef.current.cancel();
   };
 
-  // --- RE-ENGINEERED SPEED CALCULATOR ---
-  // Maps WPM targets to aggressive rate multipliers that match the console test snippet
+  // --- CRITICAL HIGH-SPEED EXPONENTIAL MULTIPLIER ---
+  // Overrides native browser limits to force real 500+ WPM pacing
   const getCalculatedRate = (targetWpm: number): number => {
     if (targetWpm <= 150) return 0.8;
     if (targetWpm <= 300) return 1.5;
     if (targetWpm <= 450) return 3.2;
-    // Scaled exponential curve to break through standard engine limits up to 600+ WPM
-    return 5.0 + ((targetWpm - 450) / 50); 
+    // Exponentially scale multiplier to bust through native caps
+    return 5.0 + ((targetWpm - 450) / 40); 
   };
 
   const setWpm = (newWpm: number) => {
     setWpmState(newWpm);
     wpmRef.current = newWpm;
-
     if (isPlaying) {
       if (isMobileDevice()) {
         if (timerRef.current) clearInterval(timerRef.current);
         const msPerWord = (60 / newWpm) * 1000;
-        timerRef.current = setInterval(() => {
-          const nextIndex = currentIndexRef.current + 1;
-          if (nextIndex >= wordsRef.current.length) {
-            pause();
-            setCurrentIndex(wordsRef.current.length - 1);
-          } else {
-            setCurrentIndex(nextIndex);
-            if (nextIndex % 6 === 0) speakMobileChunk(nextIndex);
-          }
-        }, msPerWord);
+        timerRef.current = setInterval(runMobileTimerTick, msPerWord);
         speakMobileChunk(currentIndexRef.current);
       } else {
         if (synthRef.current) {
@@ -74,23 +72,34 @@ export function useSpeechPlayer() {
     return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
   };
 
-  const play = () => {
-    if (!synthRef.current || wordsRef.current.length === 0) return;
+  const runMobileTimerTick = () => {
+    const nextIndex = currentIndexRef.current + 1;
+    if (nextIndex >= wordsRef.current.length) {
+      handleChapterCompletion();
+    } else {
+      setCurrentIndex(nextIndex);
+      if (nextIndex % 6 === 0) speakMobileChunk(nextIndex);
+    }
+  };
+
+  const handleChapterCompletion = () => {
+    cleanup();
+    setIsPlaying(false);
+    if (onChapterFinishedRef.current) {
+      onChapterFinishedRef.current();
+    }
+  };
+
+  const play = (useTTS: boolean = true) => {
+    if (wordsRef.current.length === 0) return;
     cleanup();
     setIsPlaying(true);
 
+    if (!useTTS) return; 
+
     if (isMobileDevice()) {
       const msPerWord = (60 / wpmRef.current) * 1000;
-      timerRef.current = setInterval(() => {
-        const nextIndex = currentIndexRef.current + 1;
-        if (nextIndex >= wordsRef.current.length) {
-          pause();
-          setCurrentIndex(wordsRef.current.length - 1);
-        } else {
-          setCurrentIndex(nextIndex);
-          if (nextIndex % 6 === 0) speakMobileChunk(nextIndex);
-        }
-      }, msPerWord);
+      timerRef.current = setInterval(runMobileTimerTick, msPerWord);
       speakMobileChunk(currentIndexRef.current);
     } else {
       executeLaptopPlay();
@@ -99,13 +108,12 @@ export function useSpeechPlayer() {
 
   const executeLaptopPlay = () => {
     if (!synthRef.current) return;
+    const remainingText = wordsRef.current.slice(currentIndexRef.current).join(" ");
+    if (!remainingText.trim()) return;
     
-    const remainingWords = wordsRef.current.slice(currentIndexRef.current);
-    const fullTextString = remainingWords.join(" ");
+    const utterance = new SpeechSynthesisUtterance(remainingText);
     
-    const utterance = new SpeechSynthesisUtterance(fullTextString);
-    
-    // Applying the updated rate curve
+    // FIXED: Now accurately using the non-linear high-speed curve calculation mapping
     utterance.rate = getCalculatedRate(wpmRef.current);
 
     let baseIndex = currentIndexRef.current;
@@ -113,21 +121,19 @@ export function useSpeechPlayer() {
     let wordsCounted = 0;
 
     utterance.onboundary = (event) => {
-      if (event.name === "word") {
-        if (event.charIndex !== lastWordCharPos) {
-          const visualIndex = baseIndex + wordsCounted;
-          if (visualIndex < wordsRef.current.length) {
-            setCurrentIndex(visualIndex);
-            wordsCounted++;
-          }
-          lastWordCharPos = event.charIndex;
+      if (event.name === "word" && event.charIndex !== lastWordCharPos) {
+        const visualIndex = baseIndex + wordsCounted;
+        if (visualIndex < wordsRef.current.length) {
+          setCurrentIndex(visualIndex);
+          wordsCounted++;
         }
+        lastWordCharPos = event.charIndex;
       }
     };
 
     utterance.onend = () => {
-      if (synthRef.current && !synthRef.current.speaking) {
-        setIsPlaying(false);
+      if (synthRef.current && !synthRef.current.speaking && isPlaying) {
+        handleChapterCompletion();
       }
     };
     
@@ -141,6 +147,8 @@ export function useSpeechPlayer() {
     const chunk = wordsRef.current.slice(startIndex, startIndex + 15).join(" ");
     if (!chunk.trim()) return;
     const utterance = new SpeechSynthesisUtterance(chunk);
+    
+    // FIXED: Ensured mobile short chunks scale with the high-speed multiplier as well
     utterance.rate = getCalculatedRate(wpmRef.current);
     synthRef.current.speak(utterance);
   };
@@ -150,29 +158,17 @@ export function useSpeechPlayer() {
     setIsPlaying(false);
   };
 
-  const streamEpub = async (file: File) => {
+  const fetchChapterStream = async (bookName: string, chapterIdx: number) => {
     setIsProcessing(true);
     setWords([]);
     setCurrentIndex(0);
     cleanup();
     setIsPlaying(false);
-    
-    // CHROME FIX: Prime Chrome's audio engine inside this click gesture event loop
-    if (typeof window !== "undefined" && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      const primingUtterance = new SpeechSynthesisUtterance("");
-      window.speechSynthesis.speak(primingUtterance);
-    }
-    
-    const formData = new FormData();
-    formData.append("file", file);
 
     try {
-      const response = await fetch("http://localhost:8090/api/v1/parse-epub-stream", {
-        method: "POST",
-        body: formData,
-      });
-
+      const response = await fetch(
+        `http://localhost:8090/api/v1/library/stream-chapter?book=${encodeURIComponent(bookName)}&chapter_index=${chapterIdx}`
+      );
       if (!response.body) return;
 
       const reader = response.body.getReader();
@@ -194,8 +190,10 @@ export function useSpeechPlayer() {
           setWords((prev) => [...prev, ...parsed.words]);
         }
       }
+      setSelectedBook(bookName);
+      setCurrentChapterIdx(chapterIdx);
     } catch (err) {
-      console.error("Streaming connection dropped:", err);
+      console.error("Failed downloading chunk segments:", err);
     } finally {
       setIsProcessing(false);
     }
@@ -208,9 +206,15 @@ export function useSpeechPlayer() {
     isProcessing,
     wpm,
     setWpm,
-    streamEpub,
+    selectedBook,
+    currentChapterIdx,
+    totalChaptersCount,
+    setTotalChaptersCount,
+    fetchChapterStream,
     play,
     pause,
     setCurrentIndex,
+    setIsPlaying,
+    onChapterFinishedRef
   };
 }
