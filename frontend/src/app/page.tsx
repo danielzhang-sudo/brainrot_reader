@@ -164,7 +164,7 @@ export default function LibraryReaderPage() {
     const right = word.substring(anchorIdx + 1);
 
     return (
-      <div className="flex w-full text-5xl font-black drop-shadow-md select-none" style={{ fontFamily: "Courier New, monospace", textRendering: "geometricPrecision" }}>
+      <div className="flex w-full text-3xl sm:text-4xl md:text-5xl font-black drop-shadow-md select-none" style={{ fontFamily: "Courier New, monospace", textRendering: "geometricPrecision" }}>
         <div className="w-[45%] text-right text-white/80 pr-[1px] whitespace-pre">{left}</div>
         <div className="w-[10%] text-center text-red-500">{middle}</div>
         <div className="w-[45%] text-left text-white/80 pl-[1px] whitespace-pre">{right}</div>
@@ -202,9 +202,9 @@ export default function LibraryReaderPage() {
         {words.length > 0 ? (
           <div className="w-full max-w-sm flex flex-col items-center text-center">
             {useAnchor && <div className="w-8 border-t border-white/20 h-1 mb-4" />}
-            <div className="w-full h-16 flex justify-center items-center">
+            <div className="w-full h-12 sm:h-14 md:h-16 flex justify-center items-center">
               {useAnchor ? renderWordWithAnchor(words[currentIndex]) : (
-                <span className="text-5xl font-black tracking-tight">{words[currentIndex]}</span>
+                <span className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight">{words[currentIndex]}</span>
               )}
             </div>
             {useAnchor && <div className="w-8 border-t border-white/20 h-1 mt-4" />}
