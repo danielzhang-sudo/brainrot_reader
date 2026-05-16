@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 
 const API_BASE = typeof window !== "undefined"
-  ? `http://${window.location.hostname}:8090`
-  : "http://localhost:8090";
+  ? (process.env.NEXT_PUBLIC_API_URL || `http://${window.location.hostname}:8090`)
+  : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8090");
 
 export function useSpeechPlayer() {
   const [words, setWords] = useState<string[]>([]);

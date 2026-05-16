@@ -1,0 +1,33 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: brainrot-backend
+    ports:
+      - "${BACKEND_PORT:-8090}:8090"
+    volumes:
+      - epubs-data:/app/epubs
+    env_file:
+      - .env
+    environment:
+      - STORAGE_DIR=/app/epubs
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-}
+    container_name: brainrot-frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    env_file:
+      - .env
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  epubs-data:
