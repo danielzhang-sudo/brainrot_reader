@@ -183,7 +183,7 @@ class BrainrotEngine {
     const textFiles = files
       .filter(f => f.toLowerCase().endsWith(".xhtml") || f.toLowerCase().endsWith(".html") || f.toLowerCase().endsWith(".htm") || f.toLowerCase().endsWith(".xml"))
       .filter(f => !f.toLowerCase().includes("toc") && !f.toLowerCase().includes("nav"))
-      .sort();
+      .sort((a, b) => a.localeCompare(b, undefined, {numeric: true, sensitivity: 'base'}));
       
     if (textFiles.length === 0) {
       throw new Error("No structured HTML/XHTML chapters found inside ePub container.");

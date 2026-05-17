@@ -1042,6 +1042,15 @@
       <span style="font-size: 11px; opacity: 0.6; margin-top: -2px;">Cycles theme colors (Lavender, Green, Blue, Terracotta, etc.) automatically on each new chapter.</span>
     </div>
 
+    <!-- Auto-Play Advance Customization -->
+    <div style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 4px;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h4 style="font-size: 14px; font-weight: 500; color: var(--md-sys-color-primary);">Auto-play Chapters</h4>
+        <input type="checkbox" id="auto-play-chapter-toggle" checked style="width: 18px; height: 18px; cursor: pointer;">
+      </div>
+      <span style="font-size: 11px; opacity: 0.6; margin-top: -2px;">Automatically starts playing when advancing to the next or previous chapter.</span>
+    </div>
+
     <button class="m3-btn tonal" id="close-settings-btn" style="width: 100%;">Close</button>
   </div>
 
@@ -1103,34 +1112,40 @@
     }
 
     // Initialize application interface bindings
-    document.addEventListener("DOMContentLoaded", async () => {
-      // Boot Standalone Engine
-      await engine.init();
-      
-      // Load and render dynamic listings
-      refreshLibraryUI();
-      refreshMusicUI();
-      populateVoicesSelector();
-      populateBookSelector();
-
-      // Hook dynamic voice loading for mobile viewports
-      if (window.speechSynthesis) {
-        window.speechSynthesis.onvoiceschanged = () => {
-          populateVoicesSelector();
-        };
-      }
+    document.addEventListener("DOMContentLoaded", () => {
+      // Hoist DOM elements upfront to prevent TDZ ReferenceErrors
+      const navDestinations = document.querySelectorAll(".nav-destination");
+      const screens = document.querySelectorAll(".screen");
+      const settingsSheet = document.getElementById("settings-bottom-sheet");
+      const sheetOverlay = document.getElementById("sheet-overlay");
+      const readerBookSelect = document.getElementById("reader-book-select");
+      const readerChapterSelect = document.getElementById("reader-chapter-select");
+      const fullscreenBtn = document.getElementById("fullscreen-trigger-btn");
+      const exitFocusBtn = document.getElementById("exit-focus-mode-btn");
+      const rsvpDisplayBox = document.getElementById("rsvp-display-box");
+      const themeSelector = document.getElementById("theme-mode-selector");
+      const randomHueToggle = document.getElementById("random-hue-toggle");
+      const wpmSlider = document.getElementById("wpm-slider");
+      const wpmDisplay = document.getElementById("wpm-display");
+      const sheetWpmLabel = document.getElementById("sheet-wpm-label");
+      const volumeSlider = document.getElementById("music-volume-slider");
+      const volumeDisplay = document.getElementById("music-volume-display");
+      const ttsToggle = document.getElementById("use-tts-toggle");
+      const voiceSelector = document.getElementById("tts-voice-selector");
+      const seekBar = document.getElementById("reader-seek-bar");
+      const playPauseBtn = document.getElementById("play-pause-btn");
+      const prevChapterBtn = document.getElementById("prev-chapter-btn");
+      const nextChapterBtn = document.getElementById("next-chapter-btn");
+      const epubUploader = document.getElementById("epub-file-uploader");
+      const musicUploader = document.getElementById("music-file-uploader");
+      const autoPlayToggle = document.getElementById("auto-play-chapter-toggle");
 
       // Hook engine event bridges
       engine.onUIUpdate = () => updateReaderDisplay();
       engine.onChapterFinished = async () => {
         // Auto-advance to next chapter if available and auto-play
         if (engine.currentChapterIdx + 1 < engine.chapters.length) {
-          await loadNewChapter(engine.currentChapterIdx + 1);
-          setTimeout(() => {
-            engine.play();
-            document.getElementById('play-icon').style.display = 'none';
-            document.getElementById('pause-icon').style.display = 'block';
-          }, 300);
+          await loadNewChapter(engine.currentChapterIdx + 1, true);
         } else {
           document.getElementById('play-icon').style.display = 'block';
           document.getElementById('pause-icon').style.display = 'none';
@@ -1138,9 +1153,6 @@
       };
       
       // Screen switching navigation
-      const navDestinations = document.querySelectorAll(".nav-destination");
-      const screens = document.querySelectorAll(".screen");
-      
       navDestinations.forEach(dest => {
         dest.addEventListener("click", () => {
           navDestinations.forEach(d => d.classList.remove("active"));
@@ -1153,9 +1165,6 @@
       });
 
       // Settings bottom sheet triggers
-      const settingsSheet = document.getElementById("settings-bottom-sheet");
-      const sheetOverlay = document.getElementById("sheet-overlay");
-      
       function openSettings() {
         settingsSheet.classList.add("open");
         sheetOverlay.classList.add("active");
@@ -1171,26 +1180,27 @@
       sheetOverlay.addEventListener("click", closeSettings);
 
       // Book & Chapter dropdown selectors on Reader screen
-      const readerBookSelect = document.getElementById("reader-book-select");
-      const readerChapterSelect = document.getElementById("reader-chapter-select");
-
       // Populate book dropdown list
       async function populateBookSelector() {
-        const books = await engine.getBooksList();
-        readerBookSelect.innerHTML = '<option value="">Choose Book...</option>';
-        books.forEach(book => {
-          const opt = document.createElement("option");
-          opt.value = book.name;
-          opt.textContent = book.name;
-          readerBookSelect.appendChild(opt);
-        });
-        
-        // Restore active book if saved
-        const savedBook = localStorage.getItem("m3-active-book");
-        if (savedBook && books.some(b => b.name === savedBook)) {
-          readerBookSelect.value = savedBook;
-          const event = new Event('change');
-          readerBookSelect.dispatchEvent(event);
+        try {
+          const books = await engine.getBooksList();
+          readerBookSelect.innerHTML = '<option value="">Choose Book...</option>';
+          books.forEach(book => {
+            const opt = document.createElement("option");
+            opt.value = book.name;
+            opt.textContent = book.name;
+            readerBookSelect.appendChild(opt);
+          });
+          
+          // Restore active book if saved
+          const savedBook = localStorage.getItem("m3-active-book");
+          if (savedBook && books.some(b => b.name === savedBook)) {
+            readerBookSelect.value = savedBook;
+            const event = new Event('change');
+            readerBookSelect.dispatchEvent(event);
+          }
+        } catch (err) {
+          console.warn("Failed populating books list:", err);
         }
       }
 
@@ -1233,14 +1243,10 @@
 
       readerChapterSelect.addEventListener("change", async () => {
         const chapIdx = parseInt(readerChapterSelect.value);
-        await loadNewChapter(chapIdx);
+        await loadNewChapter(chapIdx, true);
       });
 
       // Focus / Fullscreen Mode implementation
-      const fullscreenBtn = document.getElementById("fullscreen-trigger-btn");
-      const exitFocusBtn = document.getElementById("exit-focus-mode-btn");
-      const rsvpDisplayBox = document.getElementById("rsvp-display-box");
-
       function toggleImmersiveMode() {
         document.body.classList.toggle("immersive-mode");
         const isFocus = document.body.classList.contains("immersive-mode");
@@ -1263,8 +1269,6 @@
       });
 
       // Theme Mode configuration (Dark, Light, OLED Black)
-      const themeSelector = document.getElementById("theme-mode-selector");
-
       function applyThemeMode(theme) {
         document.body.classList.remove("light-theme", "oled-black");
         
@@ -1300,7 +1304,6 @@
       applyThemeMode(savedTheme);
 
       // Random Color Seed Per Chapter configuration
-      const randomHueToggle = document.getElementById("random-hue-toggle");
       randomHueToggle.addEventListener("change", (e) => {
         engine.randomColorPerChapter = e.target.checked;
         localStorage.setItem("m3-random-hue-chapter", e.target.checked ? "true" : "false");
@@ -1310,11 +1313,18 @@
       engine.randomColorPerChapter = localStorage.getItem("m3-random-hue-chapter") === "true";
       randomHueToggle.checked = engine.randomColorPerChapter;
 
-      // Engine parameter sliders and triggers
-      const wpmSlider = document.getElementById("wpm-slider");
-      const wpmDisplay = document.getElementById("wpm-display");
-      const sheetWpmLabel = document.getElementById("sheet-wpm-label");
+      // Auto Play Chapters configuration
+      autoPlayToggle.addEventListener("change", (e) => {
+        engine.autoPlayChapter = e.target.checked;
+        localStorage.setItem("m3-auto-play-chapter", e.target.checked ? "true" : "false");
+      });
       
+      // Restore Auto Play setting (default is true)
+      const savedAutoPlay = localStorage.getItem("m3-auto-play-chapter");
+      engine.autoPlayChapter = savedAutoPlay !== "false";
+      autoPlayToggle.checked = engine.autoPlayChapter;
+
+      // Engine parameter sliders and triggers
       wpmSlider.addEventListener("input", (e) => {
         const val = parseInt(e.target.value);
         wpmDisplay.textContent = `${val} WPM`;
@@ -1325,9 +1335,6 @@
       // WPM speed bubble trigger settings sheet
       wpmDisplay.addEventListener("click", openSettings);
 
-      const volumeSlider = document.getElementById("music-volume-slider");
-      const volumeDisplay = document.getElementById("music-volume-display");
-      
       volumeSlider.addEventListener("input", (e) => {
         const val = parseInt(e.target.value);
         volumeDisplay.textContent = `${val}%`;
@@ -1335,7 +1342,6 @@
       });
 
       // TTS Speech toggle settings
-      const ttsToggle = document.getElementById("use-tts-toggle");
       ttsToggle.addEventListener("change", (e) => {
         engine.useTTS = e.target.checked;
         if (engine.isPlaying) {
@@ -1344,7 +1350,6 @@
       });
 
       // Speech Voice Selector dropdown binding
-      const voiceSelector = document.getElementById("tts-voice-selector");
       voiceSelector.addEventListener("change", (e) => {
         const selectedName = e.target.value;
         const voice = engine.availableVoices.find(v => v.name === selectedName);
@@ -1358,14 +1363,12 @@
       });
 
       // Seek bar timeline binding
-      const seekBar = document.getElementById("reader-seek-bar");
       seekBar.addEventListener("input", (e) => {
         const val = parseInt(e.target.value);
         engine.seekToPercent(val);
       });
 
       // Unified controls playback bar
-      const playPauseBtn = document.getElementById("play-pause-btn");
       playPauseBtn.addEventListener("click", () => {
         if (engine.isPlaying) {
           engine.pause();
@@ -1382,18 +1385,15 @@
       document.getElementById("ff-btn").addEventListener("click", () => engine.fastForward());
 
       // Skip Chapters buttons
-      const prevChapterBtn = document.getElementById("prev-chapter-btn");
-      const nextChapterBtn = document.getElementById("next-chapter-btn");
-      
       prevChapterBtn.addEventListener("click", async () => {
         if (engine.currentChapterIdx - 1 >= 0) {
-          await loadNewChapter(engine.currentChapterIdx - 1);
+          await loadNewChapter(engine.currentChapterIdx - 1, true);
         }
       });
       
       nextChapterBtn.addEventListener("click", async () => {
         if (engine.currentChapterIdx + 1 < engine.chapters.length) {
-          await loadNewChapter(engine.currentChapterIdx + 1);
+          await loadNewChapter(engine.currentChapterIdx + 1, true);
         }
       });
 
@@ -1402,7 +1402,6 @@
       // ==========================================
       
       // ePub Uploader
-      const epubUploader = document.getElementById("epub-file-uploader");
       epubUploader.addEventListener("change", async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -1433,7 +1432,6 @@
       });
 
       // Music Audio Uploader
-      const musicUploader = document.getElementById("music-file-uploader");
       musicUploader.addEventListener("change", async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -1453,109 +1451,117 @@
       // ==========================================
       
       async function refreshLibraryUI() {
-        const books = await engine.getBooksList();
-        const listContainer = document.getElementById("library-books-list");
-        
-        if (books.length === 0) {
-          listContainer.innerHTML = `<div class="rsvp-placeholder" style="margin-top: 40px;">No books uploaded yet. Tap "Upload ePub" above to save one into secure phone storage.</div>`;
-          return;
-        }
-        
-        listContainer.innerHTML = "";
-        books.forEach(book => {
-          const card = document.createElement("div");
-          card.className = "m3-card clickable";
+        try {
+          const books = await engine.getBooksList();
+          const listContainer = document.getElementById("library-books-list");
           
-          card.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <div class="m3-list-item-title">${book.name}</div>
-                <div class="m3-list-item-subtitle">Added on ${new Date(book.addedAt).toLocaleDateString()}</div>
+          if (books.length === 0) {
+            listContainer.innerHTML = `<div class="rsvp-placeholder" style="margin-top: 40px;">No books uploaded yet. Tap "Upload ePub" above to save one into secure phone storage.</div>`;
+            return;
+          }
+          
+          listContainer.innerHTML = "";
+          books.forEach(book => {
+            const card = document.createElement("div");
+            card.className = "m3-card clickable";
+            
+            card.innerHTML = `
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div class="m3-list-item-title">${book.name}</div>
+                  <div class="m3-list-item-subtitle">Added on ${new Date(book.addedAt).toLocaleDateString()}</div>
+                </div>
+                <button class="m3-btn outlined delete-book-trigger" data-name="${book.name}" style="height: 32px; padding: 0 12px; border-color: var(--md-sys-color-error); color: var(--md-sys-color-error); border-radius: 8px;">
+                  Delete
+                </button>
               </div>
-              <button class="m3-btn outlined delete-book-trigger" data-name="${book.name}" style="height: 32px; padding: 0 12px; border-color: var(--md-sys-color-error); color: var(--md-sys-color-error); border-radius: 8px;">
-                Delete
-              </button>
-            </div>
-          `;
-          
-          // Card tap loads the book and switches to Reader
-          card.addEventListener("click", async (e) => {
-            if (e.target.classList.contains("delete-book-trigger")) return;
+            `;
             
-            // Auto-select book in Reader dropdown
-            readerBookSelect.value = book.name;
-            const event = new Event('change');
-            await readerBookSelect.dispatchEvent(event);
+            // Card tap loads the book and switches to Reader
+            card.addEventListener("click", async (e) => {
+              if (e.target.classList.contains("delete-book-trigger")) return;
+              
+              // Auto-select book in Reader dropdown
+              readerBookSelect.value = book.name;
+              const event = new Event('change');
+              await readerBookSelect.dispatchEvent(event);
+              
+              // Switch navigation immediately to Reader tab!
+              navDestinations.forEach(d => d.classList.remove("active"));
+              document.querySelector('.nav-destination[data-target="screen-reader"]').classList.add("active");
+              screens.forEach(s => s.classList.remove("active"));
+              document.getElementById("screen-reader").classList.add("active");
+            });
             
-            // Switch navigation immediately to Reader tab!
-            navDestinations.forEach(d => d.classList.remove("active"));
-            document.querySelector('.nav-destination[data-target="screen-reader"]').classList.add("active");
-            screens.forEach(s => s.classList.remove("active"));
-            document.getElementById("screen-reader").classList.add("active");
+            // Delete button trigger
+            card.querySelector(".delete-book-trigger").addEventListener("click", async (e) => {
+              e.stopPropagation();
+              if (confirm(`Delete book "${book.name}" from local storage?`)) {
+                await engine.deleteBook(book.name);
+                refreshLibraryUI();
+                populateBookSelector();
+              }
+            });
+            
+            listContainer.appendChild(card);
           });
-          
-          // Delete button trigger
-          card.querySelector(".delete-book-trigger").addEventListener("click", async (e) => {
-            e.stopPropagation();
-            if (confirm(`Delete book "${book.name}" from local storage?`)) {
-              await engine.deleteBook(book.name);
-              refreshLibraryUI();
-              populateBookSelector();
-            }
-          });
-          
-          listContainer.appendChild(card);
-        });
+        } catch (err) {
+          console.warn("Failed refreshing library UI:", err);
+        }
       }
 
       async function refreshMusicUI() {
-        const tracks = await engine.getTracksList();
-        const listContainer = document.getElementById("music-tracks-list");
-        
-        if (tracks.length === 0) {
-          listContainer.innerHTML = `<div class="rsvp-placeholder" style="margin-top: 40px;">No offline MP3 tracks saved. Tap "Add Audio" above to save music into secure storage.</div>`;
-          return;
-        }
-        
-        listContainer.innerHTML = "";
-        tracks.forEach(track => {
-          const card = document.createElement("div");
-          const isActive = engine.currentTrackId === track.id;
+        try {
+          const tracks = await engine.getTracksList();
+          const listContainer = document.getElementById("music-tracks-list");
           
-          card.className = "m3-list-item";
-          card.style.borderColor = isActive ? "var(--md-sys-color-primary)" : "var(--md-sys-color-outline-variant)";
+          if (tracks.length === 0) {
+            listContainer.innerHTML = `<div class="rsvp-placeholder" style="margin-top: 40px;">No offline MP3 tracks saved. Tap "Add Audio" above to save music into secure storage.</div>`;
+            return;
+          }
           
-          card.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 12px; flex: 1; cursor: pointer;" class="play-track-trigger">
-              <svg class="icon-m3" style="color: ${isActive ? 'var(--md-sys-color-primary)' : 'inherit'};" viewBox="0 -960 960 960"><path d="M400-280v-400l280 200-280 200Z"/></svg>
-              <div>
-                <div class="m3-list-item-title" style="color: ${isActive ? 'var(--md-sys-color-primary)' : 'inherit'};">${track.title}</div>
-                <div class="m3-list-item-subtitle">${isActive ? 'Active & Loop playing' : 'Tap to play background'}</div>
+          listContainer.innerHTML = "";
+          tracks.forEach(track => {
+            const card = document.createElement("div");
+            const isActive = engine.currentTrackId === track.id;
+            
+            card.className = "m3-list-item";
+            card.style.borderColor = isActive ? "var(--md-sys-color-primary)" : "var(--md-sys-color-outline-variant)";
+            
+            card.innerHTML = `
+              <div style="display: flex; align-items: center; gap: 12px; flex: 1; cursor: pointer;" class="play-track-trigger">
+                <svg class="icon-m3" style="color: ${isActive ? 'var(--md-sys-color-primary)' : 'inherit'};" viewBox="0 -960 960 960"><path d="M400-280v-400l280 200-280 200Z"/></svg>
+                <div>
+                  <div class="m3-list-item-title" style="color: ${isActive ? 'var(--md-sys-color-primary)' : 'inherit'};">${track.title}</div>
+                  <div class="m3-list-item-subtitle">${isActive ? 'Active & Loop playing' : 'Tap to play background'}</div>
+                </div>
               </div>
-            </div>
-            <button class="m3-btn outlined delete-track-trigger" data-id="${track.id}" style="height: 32px; padding: 0 12px; border-color: var(--md-sys-color-error); color: var(--md-sys-color-error); border-radius: 8px;">
-              Delete
-            </button>
-          `;
-          
-          card.querySelector(".play-track-trigger").addEventListener("click", () => {
-            engine.playOfflineTrack(track.id);
-            refreshMusicUI();
-          });
-          
-          card.querySelector(".delete-track-trigger").addEventListener("click", async (e) => {
-            if (confirm("Delete audio track?")) {
-              await engine.deleteTrack(track.id);
-              if (engine.currentTrackId === track.id) {
-                engine.pauseOfflineTrack();
-                engine.currentTrackId = null;
-              }
+              <button class="m3-btn outlined delete-track-trigger" data-id="${track.id}" style="height: 32px; padding: 0 12px; border-color: var(--md-sys-color-error); color: var(--md-sys-color-error); border-radius: 8px;">
+                Delete
+              </button>
+            `;
+            
+            card.querySelector(".play-track-trigger").addEventListener("click", () => {
+              engine.playOfflineTrack(track.id);
               refreshMusicUI();
-            }
+            });
+            
+            card.querySelector(".delete-track-trigger").addEventListener("click", async (e) => {
+              if (confirm("Delete audio track?")) {
+                await engine.deleteTrack(track.id);
+                if (engine.currentTrackId === track.id) {
+                  engine.pauseOfflineTrack();
+                  engine.currentTrackId = null;
+                }
+                refreshMusicUI();
+              }
+            });
+            
+            listContainer.appendChild(card);
           });
-          
-          listContainer.appendChild(card);
-        });
+        } catch (err) {
+          console.warn("Failed refreshing music UI:", err);
+        }
       }
 
       let voiceDetectionRetries = 0;
@@ -1585,7 +1591,7 @@
         });
       }
 
-      async function loadNewChapter(chapterIndex) {
+      async function loadNewChapter(chapterIndex, triggerPlay = false) {
         try {
           engine.pause(); // Pause playback if playing
           document.getElementById('play-icon').style.display = 'block';
@@ -1627,6 +1633,15 @@
           localStorage.setItem(`m3-active-chap-${engine.selectedBook}`, chapterIndex);
           
           updateReaderDisplay();
+
+          // Auto-play next chapter if triggerPlay is requested and setting is active
+          if (triggerPlay && engine.autoPlayChapter) {
+            setTimeout(() => {
+              engine.play();
+              document.getElementById('play-icon').style.display = 'none';
+              document.getElementById('pause-icon').style.display = 'block';
+            }, 300);
+          }
         } catch (err) {
           alert("Failed loading chapter text: " + err.message);
         }
@@ -1663,6 +1678,31 @@
           document.getElementById("seek-percentage-display").textContent = `${percent}%`;
         }
       }
+
+      // -------------------------------------------------------------
+      // ASYNCHRONOUS INITIALIZATION (Resilient & Non-blocking)
+      // -------------------------------------------------------------
+      (async function initSystemResiliently() {
+        try {
+          // Initialize databases and speech components in background
+          await engine.init();
+          
+          // Populate dynamic listings
+          await refreshLibraryUI();
+          await refreshMusicUI();
+          populateVoicesSelector();
+          await populateBookSelector();
+
+          // Hook dynamic voice loading for mobile viewports
+          if (window.speechSynthesis) {
+            window.speechSynthesis.onvoiceschanged = () => {
+              populateVoicesSelector();
+            };
+          }
+        } catch (err) {
+          console.error("System background boot failed, UI static controls remain fully active:", err);
+        }
+      })();
     });
   </script>
 </body>
