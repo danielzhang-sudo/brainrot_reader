@@ -346,8 +346,12 @@ class BrainrotEngine {
     
     const utterance = new SpeechSynthesisUtterance(chunk);
     utterance.rate = this.getCalculatedRate(this.wpm);
-    if (this.selectedVoice) {
-      utterance.voice = this.selectedVoice;
+    if (this.selectedVoice && this.synth) {
+      const freshVoices = this.synth.getVoices();
+      const matchingVoice = freshVoices.find(v => v.name === this.selectedVoice.name);
+      if (matchingVoice) {
+        utterance.voice = matchingVoice;
+      }
     }
     this.synth.speak(utterance);
   }
@@ -359,8 +363,12 @@ class BrainrotEngine {
 
     const utterance = new SpeechSynthesisUtterance(remainingText);
     utterance.rate = this.getCalculatedRate(this.wpm);
-    if (this.selectedVoice) {
-      utterance.voice = this.selectedVoice;
+    if (this.selectedVoice && this.synth) {
+      const freshVoices = this.synth.getVoices();
+      const matchingVoice = freshVoices.find(v => v.name === this.selectedVoice.name);
+      if (matchingVoice) {
+        utterance.voice = matchingVoice;
+      }
     }
 
     let baseIndex = this.currentIndex;

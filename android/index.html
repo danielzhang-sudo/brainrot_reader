@@ -1113,6 +1113,13 @@
       populateVoicesSelector();
       populateBookSelector();
 
+      // Hook dynamic voice loading for mobile viewports
+      if (window.speechSynthesis) {
+        window.speechSynthesis.onvoiceschanged = () => {
+          populateVoicesSelector();
+        };
+      }
+
       // Hook engine event bridges
       engine.onUIUpdate = () => updateReaderDisplay();
       engine.onChapterFinished = async () => {
