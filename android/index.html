@@ -928,7 +928,7 @@
     <!-- SCREEN 3: OFFLINE MUSIC -->
     <section class="screen" id="screen-music">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h2 style="font-size: 22px; font-weight: 500;">Ambient MP3s</h2>
+        <h2 style="font-size: 22px; font-weight: 500;">Ambient Sound</h2>
         
         <div class="file-input-wrapper">
           <button class="m3-btn filled">
@@ -978,6 +978,19 @@
       <span class="nav-label">Ambient</span>
     </div>
   </nav>
+
+  <!-- Duplicate Book Resolution Bottom Sheet -->
+  <div class="sheet-overlay" id="dup-overlay"></div>
+  <div class="bottom-sheet" id="dup-bottom-sheet" style="z-index: 30;">
+    <div class="bottom-sheet-handle"></div>
+    <h3 style="font-size: 20px; font-weight: 500; margin-bottom: 16px;">Book Already Exists</h3>
+    <p style="margin-bottom: 20px; opacity: 0.8; font-size: 14px;">A book named "<span id="dup-book-name"></span>" already exists in your library.</p>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <button class="m3-btn filled" id="dup-replace-btn">Replace</button>
+      <button class="m3-btn tonal" id="dup-rename-btn">Rename</button>
+      <button class="m3-btn outlined" id="dup-cancel-btn">Cancel</button>
+    </div>
+  </div>
 
   <!-- Material 3 Bottom Sheet Dialog (Settings / Customizations) -->
   <div class="sheet-overlay" id="sheet-overlay"></div>
@@ -1256,17 +1269,82 @@
       fullscreenBtn.addEventListener("click", toggleImmersiveMode);
       exitFocusBtn.addEventListener("click", toggleImmersiveMode);
 
-      // Double tap RSVP display to toggle Focus mode
+      // RSVP display touch gestures
       let lastTapTime = 0;
+      let lastTapX = 0;
+      let holdTimer = null;
+      let isHolding = false;
+
       rsvpDisplayBox.addEventListener("click", (e) => {
         const now = new Date().getTime();
         const delta = now - lastTapTime;
+        const rect = rsvpDisplayBox.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const width = rect.width;
+        const relativeX = x / width;
+
+        if (document.body.classList.contains("immersive-mode")) {
+          if (delta < 300 && delta > 0) {
+            if (relativeX < 0.33) {
+              // Left double tap -> rewind
+              engine.rewind();
+            } else if (relativeX > 0.66) {
+              // Right double tap -> fast forward
+              engine.fastForward();
+            } else {
+              // Center double tap -> exit immersive mode
+              toggleImmersiveMode();
+            }
+            e.preventDefault();
+          }
+          lastTapTime = now;
+          lastTapX = x;
+          return;
+        }
+
+        // Normal mode: double tap toggles immersive mode
         if (delta < 300 && delta > 0) {
           toggleImmersiveMode();
           e.preventDefault();
         }
         lastTapTime = now;
       });
+
+      // Hold to pause / release to resume (immersive mode only)
+      function startHoldPause(e) {
+        if (!document.body.classList.contains("immersive-mode")) return;
+        if (e.target.closest && e.target.closest(".exit-immersive-btn")) return;
+
+        isHolding = false;
+        holdTimer = setTimeout(() => {
+          isHolding = true;
+          if (engine.isPlaying) {
+            engine.pause();
+            document.getElementById('play-icon').style.display = 'block';
+            document.getElementById('pause-icon').style.display = 'none';
+          }
+        }, 200);
+      }
+
+      function endHoldPause(e) {
+        if (!document.body.classList.contains("immersive-mode")) return;
+        clearTimeout(holdTimer);
+        if (isHolding) {
+          isHolding = false;
+          if (!engine.isPlaying && engine.words.length > 0) {
+            engine.play();
+            document.getElementById('play-icon').style.display = 'none';
+            document.getElementById('pause-icon').style.display = 'block';
+          }
+        }
+      }
+
+      rsvpDisplayBox.addEventListener("touchstart", startHoldPause, { passive: true });
+      rsvpDisplayBox.addEventListener("touchend", endHoldPause, { passive: true });
+      rsvpDisplayBox.addEventListener("touchcancel", endHoldPause, { passive: true });
+      rsvpDisplayBox.addEventListener("mousedown", startHoldPause);
+      rsvpDisplayBox.addEventListener("mouseup", endHoldPause);
+      rsvpDisplayBox.addEventListener("mouseleave", endHoldPause);
 
       // Theme Mode configuration (Dark, Light, OLED Black)
       function applyThemeMode(theme) {
@@ -1406,8 +1484,58 @@
         const file = e.target.files[0];
         if (!file) return;
         
+        let fileName = file.name;
+        const existingBooks = await engine.getBooksList();
+        const exists = existingBooks.some(b => b.name === fileName);
+        
+        if (exists) {
+          // Show duplicate resolution sheet
+          document.getElementById("dup-book-name").textContent = fileName;
+          const dupSheet = document.getElementById("dup-bottom-sheet");
+          const dupOverlay = document.getElementById("dup-overlay");
+          dupSheet.classList.add("open");
+          dupOverlay.classList.add("active");
+          
+          const choice = await new Promise((resolve) => {
+            const replaceBtn = document.getElementById("dup-replace-btn");
+            const renameBtn = document.getElementById("dup-rename-btn");
+            const cancelBtn = document.getElementById("dup-cancel-btn");
+            
+            const cleanup = () => {
+              dupSheet.classList.remove("open");
+              dupOverlay.classList.remove("active");
+              replaceBtn.onclick = null;
+              renameBtn.onclick = null;
+              cancelBtn.onclick = null;
+            };
+            
+            replaceBtn.onclick = () => { cleanup(); resolve("replace"); };
+            renameBtn.onclick = () => { cleanup(); resolve("rename"); };
+            cancelBtn.onclick = () => { cleanup(); resolve("cancel"); };
+          });
+          
+          if (choice === "cancel") {
+            epubUploader.value = "";
+            return;
+          }
+          
+          if (choice === "rename") {
+            const newName = prompt(`Rename "${fileName}" to:`, fileName);
+            if (!newName || !newName.trim()) {
+              epubUploader.value = "";
+              return;
+            }
+            fileName = newName.trim();
+            if (existingBooks.some(b => b.name === fileName)) {
+              alert("A book with that name already exists. Upload cancelled.");
+              epubUploader.value = "";
+              return;
+            }
+          }
+        }
+        
         try {
-          await engine.saveBook(file.name, file);
+          await engine.saveBook(fileName, file);
           epubUploader.value = "";
           
           // Re-populate library tab list
@@ -1415,16 +1543,19 @@
           // Update Reader page select options
           await populateBookSelector();
           
-          // AUTO-SELECT newly uploaded book and jump straight to the Reader screen!
-          readerBookSelect.value = file.name;
+          // Select newly uploaded book automatically
+          readerBookSelect.value = fileName;
           const event = new Event('change');
           await readerBookSelect.dispatchEvent(event);
           
-          // Switch page view to reader
-          navDestinations.forEach(d => d.classList.remove("active"));
-          document.querySelector('.nav-destination[data-target="screen-reader"]').classList.add("active");
-          screens.forEach(s => s.classList.remove("active"));
-          document.getElementById("screen-reader").classList.add("active");
+          // Only redirect to Reader screen if this is the only book available
+          const booksAfter = await engine.getBooksList();
+          if (booksAfter.length === 1) {
+            navDestinations.forEach(d => d.classList.remove("active"));
+            document.querySelector('.nav-destination[data-target="screen-reader"]').classList.add("active");
+            screens.forEach(s => s.classList.remove("active"));
+            document.getElementById("screen-reader").classList.add("active");
+          }
           
         } catch (err) {
           alert("Failed storing ePUB book offline: " + err.message);

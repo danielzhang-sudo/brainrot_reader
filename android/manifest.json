@@ -1,5 +1,5 @@
 {
-  "name": "Brainrot Reader Standalone",
+  "name": "Brainrot Reader",
   "short_name": "Brainrot",
   "description": "Offline Serverless RSVP Speed Reader & TTS Player",
   "start_url": "./index.html",

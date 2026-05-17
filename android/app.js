@@ -96,6 +96,17 @@ class BrainrotEngine {
     });
   }
 
+  bookExists(name) {
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(["books"], "readonly");
+      const store = transaction.objectStore("books");
+      const request = store.get(name);
+      
+      request.onsuccess = () => resolve(!!request.result);
+      request.onerror = (e) => reject(e);
+    });
+  }
+
   deleteBook(name) {
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction(["books"], "readwrite");
