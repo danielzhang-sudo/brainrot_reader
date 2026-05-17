@@ -22,6 +22,12 @@ class BrainrotEngine {
     this.audioElement.loop = true;
     this.currentTrackId = null;
     this.musicVolume = 0.5;
+    
+    // Web Audio API for normalization
+    this.audioContext = null;
+    this.audioSource = null;
+    this.compressor = null;
+    this.gainNode = null;
 
     // Speech / TTS states
     this.synth = typeof window !== "undefined" ? window.speechSynthesis : null;
@@ -219,6 +225,13 @@ class BrainrotEngine {
     this.cleanupTicker();
     
     const blob = await this.getBookBlob(bookName);
+    if (!blob) {
+      this.words = [];
+      this.currentChapterIdx = chapterIndex;
+      this.currentIndex = 0;
+      this.isPlaying = false;
+      throw new Error("Book no longer available in storage.");
+    }
     const zip = await JSZip.loadAsync(blob);
     const filepath = this.chapters[chapterIndex].id;
     
@@ -469,8 +482,43 @@ class BrainrotEngine {
 
     const objectUrl = URL.createObjectURL(blob);
     this.audioElement.src = objectUrl;
-    this.audioElement.volume = this.musicVolume;
     this.currentTrackId = trackId;
+    
+    // Initialize Web Audio API chain for volume normalization
+    if (!this.audioContext) {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        this.audioContext = new AudioCtx();
+        this.audioSource = this.audioContext.createMediaElementSource(this.audioElement);
+        this.compressor = this.audioContext.createDynamicsCompressor();
+        this.gainNode = this.audioContext.createGain();
+        
+        this.compressor.threshold.value = -24;
+        this.compressor.knee.value = 30;
+        this.compressor.ratio.value = 12;
+        this.compressor.attack.value = 0.003;
+        this.compressor.release.value = 0.25;
+        
+        this.audioSource.connect(this.compressor);
+        this.compressor.connect(this.gainNode);
+        this.gainNode.connect(this.audioContext.destination);
+        
+        this.gainNode.gain.value = this.musicVolume;
+      } catch (err) {
+        console.warn("Web Audio API unavailable, falling back to standard volume:", err);
+        this.audioElement.volume = this.musicVolume;
+      }
+    } else {
+      if (this.gainNode) {
+        this.gainNode.gain.value = this.musicVolume;
+      } else {
+        this.audioElement.volume = this.musicVolume;
+      }
+    }
+    
+    if (this.audioContext && this.audioContext.state === 'suspended') {
+      await this.audioContext.resume();
+    }
     
     try {
       await this.audioElement.play();
@@ -485,13 +533,20 @@ class BrainrotEngine {
 
   resumeOfflineTrack() {
     if (this.currentTrackId) {
+      if (this.audioContext && this.audioContext.state === 'suspended') {
+        this.audioContext.resume();
+      }
       this.audioElement.play();
     }
   }
 
   setMusicVolume(volume) {
     this.musicVolume = volume;
-    this.audioElement.volume = volume;
+    if (this.gainNode) {
+      this.gainNode.gain.value = volume;
+    } else {
+      this.audioElement.volume = volume;
+    }
   }
 
   // ==========================================

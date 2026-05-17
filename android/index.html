@@ -111,6 +111,33 @@
       --md-sys-color-error: #ffb4ab;
       --md-sys-color-on-error: #690005;
     }
+
+    /* Dark Grey overrides */
+    body.grey-theme {
+      --md-sys-color-primary: #9a9a9a;
+      --md-sys-color-on-primary: #000000;
+      --md-sys-color-primary-container: #3a3a3a;
+      --md-sys-color-on-primary-container: #e8e8e8;
+      
+      --md-sys-color-secondary: #8a8a8a;
+      --md-sys-color-on-secondary: #000000;
+      --md-sys-color-secondary-container: #2a2a2a;
+      --md-sys-color-on-secondary-container: #d8d8d8;
+      
+      --md-sys-color-surface: #1a1a1a;
+      --md-sys-color-on-surface: #e0e0e0;
+      --md-sys-color-surface-variant: #242424;
+      --md-sys-color-on-surface-variant: #a0a0a0;
+      
+      --md-sys-color-background: #121212;
+      --md-sys-color-on-background: #e0e0e0;
+      
+      --md-sys-color-outline: #555555;
+      --md-sys-color-outline-variant: #333333;
+      
+      --md-sys-color-error: #ffb4ab;
+      --md-sys-color-on-error: #690005;
+    }
     
     /* Core Resets */
     * {
@@ -335,6 +362,30 @@
       width: 96px;
       height: 96px;
       border-radius: 28px;
+    }
+
+    /* Extended FAB Modifier */
+    .m3-fab.extended {
+      width: auto;                  /* Overrides the fixed 56px width */
+      padding: 0 20px;              /* Standard M3 padding for extended FABs */
+      gap: 12px;                    /* Space between icon and text */
+    }
+
+    /* Ensure the label looks correct */
+    .m3-fab.extended span {
+      font-family: var(--md-sys-typescale-label-large-font, inherit);
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;          /* Prevents text wrapping */
+      letter-spacing: 0.1px;
+    }
+
+    /* Icon adjustment to prevent squishing */
+    .m3-fab.extended svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+      flex-shrink: 0;
     }
     
     /* Dynamic Theme Picker */
@@ -721,6 +772,34 @@
       border-bottom-color: #222222 !important;
     }
     
+    /* Dark Grey Mode overrides */
+    body.grey-theme {
+      background-color: #121212 !important;
+      color: #e0e0e0 !important;
+    }
+    
+    body.grey-theme .m3-card,
+    body.grey-theme .m3-list-item,
+    body.grey-theme .bottom-sheet,
+    body.grey-theme select {
+      background-color: #1a1a1a !important;
+      border-color: #333333 !important;
+    }
+    
+    body.grey-theme .rsvp-box {
+      background-color: #1a1a1a !important;
+      border-color: #333333 !important;
+    }
+    
+    body.grey-theme .bottom-navigation {
+      background-color: #1a1a1a !important;
+      border-top-color: #333333 !important;
+    }
+
+    body.grey-theme .top-app-bar {
+      border-bottom-color: #333333 !important;
+    }
+    
     /* Immersive Focus Mode overrides */
     body.immersive-mode .top-app-bar {
       display: none !important;
@@ -763,6 +842,14 @@
     
     body.immersive-mode #rsvp-word-render {
       font-size: 56px !important;
+    }
+    
+    /* Floating Action Button bottom-right placement */
+    .fab-bottom-right {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      z-index: 10;
     }
     
     /* Floating exit Focus mode trigger */
@@ -907,21 +994,31 @@
     <section class="screen" id="screen-library">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
         <h2 style="font-size: 22px; font-weight: 500;">Offline ePubs</h2>
-        
-        <!-- Upload button wrapper -->
-        <div class="file-input-wrapper">
-          <button class="m3-btn filled">
-            <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
-            Upload ePub
-          </button>
-          <input type="file" id="epub-file-uploader" accept=".epub">
-        </div>
       </div>
       
       <!-- Books scrollable list -->
       <div style="flex: 1; overflow-y: auto;" id="library-books-list">
         <!-- Rendered dynamically -->
-        <div class="rsvp-placeholder" style="margin-top: 40px;">No books uploaded yet. Tap "Upload ePub" above to save one into your phone storage.</div>
+        <div class="rsvp-placeholder" style="margin-top: 40px;">No books uploaded yet. Tap the + button below to save one into your phone storage.</div>
+      </div>
+      
+      <!-- FAB Upload button wrapper -->
+      <!-- <div class="file-input-wrapper fab-bottom-right">
+        <button class="m3-fab" style="background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary);">
+          <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
+        </button>
+        <input type="file" id="epub-file-uploader" accept=".epub">
+      </div> -->
+
+      <div class="file-input-wrapper fab-bottom-right">
+        <!-- Added the "extended" class here -->
+        <button class="m3-fab extended" style="background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary);">
+          <svg class="icon-m3" viewBox="0 -960 960 960">
+            <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/>
+          </svg>
+          <span>Add ePub</span>
+        </button>
+        <input type="file" id="epub-file-uploader" accept=".epub">
       </div>
     </section>
 
@@ -929,28 +1026,31 @@
     <section class="screen" id="screen-music">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
         <h2 style="font-size: 22px; font-weight: 500;">Ambient Sound</h2>
-        
-        <div class="file-input-wrapper">
-          <button class="m3-btn filled">
-            <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
-            Add Audio
-          </button>
-          <input type="file" id="music-file-uploader" accept=".mp3">
-        </div>
-      </div>
-
-      <!-- Music Volume controls -->
-      <div class="m3-card" style="margin-bottom: 16px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 14px; font-weight: 500;">Background Volume</span>
-          <span style="font-size: 12px; opacity: 0.8;" id="music-volume-display">50%</span>
-        </div>
-        <input type="range" class="m3-slider" id="music-volume-slider" min="0" max="100" value="50">
       </div>
 
       <!-- Audio Track listing -->
       <div style="flex: 1; overflow-y: auto;" id="music-tracks-list">
-        <div class="rsvp-placeholder" style="margin-top: 40px;">No offline MP3 tracks saved. Tap "Add Audio" above to save music into secure storage.</div>
+        <div class="rsvp-placeholder" style="margin-top: 40px;">No offline MP3 tracks saved. Tap the + button below to save music into secure storage.</div>
+      </div>
+      
+      <!-- FAB Add Audio button wrapper -->
+      <!-- <div class="file-input-wrapper fab-bottom-right">
+        <button class="m3-fab" style="background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary);">
+          <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
+          Add Audio
+        </button>
+        <input type="file" id="music-file-uploader" accept=".mp3">
+      </div> -->
+
+      <div class="file-input-wrapper fab-bottom-right">
+        <!-- Added the "extended" class here -->
+        <button class="m3-fab extended" style="background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary);">
+          <svg class="icon-m3" viewBox="0 -960 960 960">
+            <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/>
+          </svg>
+          <span>Add Audio</span>
+        </button>
+        <input type="file" id="music-file-uploader" accept=".mp3">
       </div>
     </section>
   </main>
@@ -1011,14 +1111,16 @@
         <div class="color-seed-btn" style="background-color: #006A6A;" data-hue="180"></div> <!-- Teal Ocean -->
       </div>
     </div>
-    
-    <!-- SPEED (WPM) CONFIG -->
+
+    <!-- Theme Selection Mode Dropdown -->
     <div style="margin-bottom: 20px;">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h4 style="font-size: 14px; font-weight: 500; color: var(--md-sys-color-primary);">Speed Ticker Rates</h4>
-        <span style="font-size: 13px; opacity: 0.8;" id="sheet-wpm-label">250 WPM</span>
-      </div>
-      <input type="range" class="m3-slider" id="wpm-slider" min="50" max="1000" step="10" value="250">
+      <h4 style="font-size: 14px; font-weight: 500; color: var(--md-sys-color-primary); margin-bottom: 8px;">Aesthetic Theme Mode</h4>
+      <select id="theme-mode-selector" class="m3-card" style="width: 100%; border-radius: 8px; font-family: inherit; font-size: 14px; padding: 8px; outline: none; background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface-variant); border: 1px solid var(--md-sys-color-outline-variant);">
+        <option value="dark">Material 3 Dark</option>
+        <option value="light">Material 3 Light</option>
+        <option value="oled">OLED Pure Black</option>
+        <option value="grey">Material 3 Dark Grey</option>
+      </select>
     </div>
 
     <!-- VOICE SELECTIONS (TTS) -->
@@ -1035,15 +1137,23 @@
         <option value="">Detecting local device speech synthesizers...</option>
       </select>
     </div>
-
-    <!-- Theme Selection Mode Dropdown -->
+    
+    <!-- SPEED (WPM) CONFIG -->
     <div style="margin-bottom: 20px;">
-      <h4 style="font-size: 14px; font-weight: 500; color: var(--md-sys-color-primary); margin-bottom: 8px;">Aesthetic Theme Mode</h4>
-      <select id="theme-mode-selector" class="m3-card" style="width: 100%; border-radius: 8px; font-family: inherit; font-size: 14px; padding: 8px; outline: none; background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface-variant); border: 1px solid var(--md-sys-color-outline-variant);">
-        <option value="dark">Material 3 Dark</option>
-        <option value="light">Material 3 Light</option>
-        <option value="oled">OLED Pure Black</option>
-      </select>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h4 style="font-size: 14px; font-weight: 500; color: var(--md-sys-color-primary);">Speed Ticker Rates</h4>
+        <span style="font-size: 13px; opacity: 0.8;" id="sheet-wpm-label">250 WPM</span>
+      </div>
+      <input type="range" class="m3-slider" id="wpm-slider" min="50" max="1000" step="10" value="250">
+    </div>
+
+    <!-- Background Music Volume -->
+    <div style="margin-bottom: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <h4 style="font-size: 14px; font-weight: 500; color: var(--md-sys-color-primary);">Background Volume</h4>
+        <span style="font-size: 13px; opacity: 0.8;" id="music-volume-display">50%</span>
+      </div>
+      <input type="range" class="m3-slider" id="music-volume-slider" min="0" max="100" value="50">
     </div>
 
     <!-- Theme Customization Toggles -->
@@ -1099,6 +1209,8 @@
         metaThemeColor.setAttribute("content", `hsl(${hue}, 20%, 94%)`);
       } else if (theme === "oled") {
         metaThemeColor.setAttribute("content", "#000000");
+      } else if (theme === "grey") {
+        metaThemeColor.setAttribute("content", "#1a1a1a");
       } else {
         metaThemeColor.setAttribute("content", `hsl(${hue}, 15%, 6%)`);
       }
@@ -1192,6 +1304,32 @@
       document.getElementById("close-settings-btn").addEventListener("click", closeSettings);
       sheetOverlay.addEventListener("click", closeSettings);
 
+      // Clear all reader state when no book is selected or book was deleted
+      function clearReaderState() {
+        engine.pause();
+        engine.selectedBook = null;
+        engine.chapters = [];
+        engine.words = [];
+        engine.currentChapterIdx = 0;
+        engine.currentIndex = 0;
+        
+        readerBookSelect.innerHTML = '<option value="">Choose Book...</option>';
+        readerChapterSelect.innerHTML = '<option value="">Select Chapter...</option>';
+        readerChapterSelect.disabled = true;
+        
+        document.getElementById("rsvp-placeholder-text").textContent = "Choose a book at the top or upload new ePub files in the Library tab.";
+        document.getElementById("rsvp-placeholder-text").style.display = "block";
+        document.getElementById("rsvp-word-render").style.display = "none";
+        document.getElementById("word-count-display").textContent = "Word 0 of 0";
+        document.getElementById("seek-percentage-display").textContent = "0%";
+        document.getElementById("chapter-nav-display").textContent = "Chapter -- of --";
+        seekBar.value = 0;
+        document.getElementById('play-icon').style.display = 'block';
+        document.getElementById('pause-icon').style.display = 'none';
+        
+        localStorage.removeItem("m3-active-book");
+      }
+
       // Book & Chapter dropdown selectors on Reader screen
       // Populate book dropdown list
       async function populateBookSelector() {
@@ -1205,12 +1343,21 @@
             readerBookSelect.appendChild(opt);
           });
           
-          // Restore active book if saved
+          // If no books exist, clear reader state completely
+          if (books.length === 0) {
+            clearReaderState();
+            return;
+          }
+          
+          // Restore active book if saved and still exists
           const savedBook = localStorage.getItem("m3-active-book");
           if (savedBook && books.some(b => b.name === savedBook)) {
             readerBookSelect.value = savedBook;
             const event = new Event('change');
             readerBookSelect.dispatchEvent(event);
+          } else if (engine.selectedBook && !books.some(b => b.name === engine.selectedBook)) {
+            // Previously selected book was deleted but other books remain
+            clearReaderState();
           }
         } catch (err) {
           console.warn("Failed populating books list:", err);
@@ -1270,6 +1417,7 @@
       exitFocusBtn.addEventListener("click", toggleImmersiveMode);
 
       // RSVP display touch gestures
+      const TAP_EDGE_RATIO = 0.25; // 25% of screen width on each side for edge actions
       let lastTapTime = 0;
       let lastTapX = 0;
       let holdTimer = null;
@@ -1285,10 +1433,10 @@
 
         if (document.body.classList.contains("immersive-mode")) {
           if (delta < 300 && delta > 0) {
-            if (relativeX < 0.33) {
+            if (relativeX < TAP_EDGE_RATIO) {
               // Left double tap -> rewind
               engine.rewind();
-            } else if (relativeX > 0.66) {
+            } else if (relativeX > (1 - TAP_EDGE_RATIO)) {
               // Right double tap -> fast forward
               engine.fastForward();
             } else {
@@ -1348,12 +1496,14 @@
 
       // Theme Mode configuration (Dark, Light, OLED Black)
       function applyThemeMode(theme) {
-        document.body.classList.remove("light-theme", "oled-black");
+        document.body.classList.remove("light-theme", "oled-black", "grey-theme");
         
         if (theme === "light") {
           document.body.classList.add("light-theme");
         } else if (theme === "oled") {
           document.body.classList.add("oled-black");
+        } else if (theme === "grey") {
+          document.body.classList.add("grey-theme");
         }
         
         localStorage.setItem("m3-theme-mode", theme);
@@ -1367,6 +1517,8 @@
             metaTheme.setAttribute("content", `hsl(${currentHue}, 20%, 94%)`);
           } else if (theme === "oled") {
             metaTheme.setAttribute("content", "#000000");
+          } else if (theme === "grey") {
+            metaTheme.setAttribute("content", "#1a1a1a");
           } else {
             metaTheme.setAttribute("content", `hsl(${currentHue}, 15%, 6%)`);
           }
@@ -1464,13 +1616,13 @@
 
       // Skip Chapters buttons
       prevChapterBtn.addEventListener("click", async () => {
-        if (engine.currentChapterIdx - 1 >= 0) {
+        if (engine.chapters.length > 0 && engine.currentChapterIdx - 1 >= 0) {
           await loadNewChapter(engine.currentChapterIdx - 1, true);
         }
       });
       
       nextChapterBtn.addEventListener("click", async () => {
-        if (engine.currentChapterIdx + 1 < engine.chapters.length) {
+        if (engine.chapters.length > 0 && engine.currentChapterIdx + 1 < engine.chapters.length) {
           await loadNewChapter(engine.currentChapterIdx + 1, true);
         }
       });
@@ -1629,8 +1781,11 @@
               e.stopPropagation();
               if (confirm(`Delete book "${book.name}" from local storage?`)) {
                 await engine.deleteBook(book.name);
+                if (engine.selectedBook === book.name) {
+                  clearReaderState();
+                }
                 refreshLibraryUI();
-                populateBookSelector();
+                await populateBookSelector();
               }
             });
             
@@ -1723,6 +1878,7 @@
       }
 
       async function loadNewChapter(chapterIndex, triggerPlay = false) {
+        if (!engine.selectedBook || engine.chapters.length === 0) return;
         try {
           engine.pause(); // Pause playback if playing
           document.getElementById('play-icon').style.display = 'block';
