@@ -98,6 +98,21 @@ All tunable values live in the `.env` file at the project root.
 - **Change ports**: Edit `BACKEND_PORT` and/or `FRONTEND_PORT` in `.env`, then restart with `docker compose up -d`.
 - **Custom backend URL**: If the backend is on a different host, set `NEXT_PUBLIC_API_URL=http://your-host:8090` and rebuild the frontend image.
 
+## 📱 Standalone Serverless PWA (Android / iOS)
+
+There is also available a **100% serverless, zero-setup, offline-first version** of Brainrot Reader inside the [android/](file:///home/xdz/github/brainrot_reader/android) directory!
+
+Once installed to your phone's homescreen, it requires **no Docker setup, no local Python servers, and no background processes**. It consumes **0% battery** when closed and works perfectly in **Airplane Mode**!
+
+### Key Features:
+- **Material 3 Design & Dynamic Themes**: Dynamic HSL system with custom seed selectors, a dedicated OLED Black setting, and optional random color rotation per chapter.
+- **Symmetric S-Deck Controls**: Symmetrically centers all media buttons. The Chapter and WPM displays act as side-wings on tablet/laptop screens and automatically collapse to a second row on small phone viewports to prevent button overlaps.
+- **Stationary Absolute ORP Lock**: The speed-reading words align absolutely, keeping the center of the Optimal Recognition Point (ORP) character locked rigidly under the crosshairs.
+- **TTS Watchdog Synchronizer**: Employs sub-millisecond precision native TTS tracking with an automated timer fallback for legacy mobile engines.
+- **Offline Storage (IndexedDB)**: Save hundreds of ePub books and looping ambient MP3s directly to your phone's secure storage.
+
+For detailed setup, running, and cloud deployment guides, see the [Android PWA README](file:///home/xdz/github/brainrot_reader/android/README.md).
+
 ## Install on Your Phone (PWA)
 
 The frontend is a Progressive Web App with a `manifest.json`. After starting the stack:
@@ -120,6 +135,7 @@ The app will open in standalone mode without browser chrome.
 brainrot_reader/
 ├── .env                          # Environment variables for Docker & local dev
 ├── docker-compose.yml            # Orchestrates backend + frontend
+├── android/                      # Standalone, serverless offline M3 PWA version
 ├── backend/
 │   ├── Dockerfile
 │   ├── .dockerignore
