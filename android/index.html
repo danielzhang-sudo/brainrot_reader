@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Brainrot Reader Standalone</title>
+  
+  <!-- PWA Manifest & App Specs -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" id="meta-theme-color" content="#1C1B1F">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <!-- Google Fonts - Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Material 3 Custom Style Sheet -->
+  <style>
+    :root {
+      /* Seed Color Configuration (Dynamic Theme default: Lavender-Purple) */
+      --seed-hue: 270;
+      
+      /* Material 3 Base Palette Colors (Generated dynamically via HSL) */
+      --md-primary-hue: var(--seed-hue);
+      
+      /* Layout Tokens */
+      --elevation-1: 0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
+      --elevation-2: 0px 2px 6px 2px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
+      --elevation-3: 0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px 0px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Default is Dark Theme (Material 3 Dark) */
+    body {
+      --md-sys-color-primary: hsl(var(--md-primary-hue), 60%, 70%);
+      --md-sys-color-on-primary: hsl(var(--md-primary-hue), 60%, 15%);
+      --md-sys-color-primary-container: hsl(var(--md-primary-hue), 50%, 25%);
+      --md-sys-color-on-primary-container: hsl(var(--md-primary-hue), 80%, 85%);
+      
+      --md-sys-color-secondary: hsl(var(--md-primary-hue), 20%, 75%);
+      --md-sys-color-on-secondary: hsl(var(--md-primary-hue), 25%, 20%);
+      --md-sys-color-secondary-container: hsl(var(--md-primary-hue), 20%, 30%);
+      --md-sys-color-on-secondary-container: hsl(var(--md-primary-hue), 40%, 85%);
+      
+      --md-sys-color-surface: hsl(var(--md-primary-hue), 12%, 10%);
+      --md-sys-color-on-surface: hsl(var(--md-primary-hue), 15%, 90%);
+      --md-sys-color-surface-variant: hsl(var(--md-primary-hue), 15%, 16%);
+      --md-sys-color-on-surface-variant: hsl(var(--md-primary-hue), 15%, 80%);
+      
+      --md-sys-color-background: hsl(var(--md-primary-hue), 15%, 6%);
+      --md-sys-color-on-background: hsl(var(--md-primary-hue), 15%, 94%);
+      
+      --md-sys-color-outline: hsl(var(--md-primary-hue), 12%, 35%);
+      --md-sys-color-outline-variant: hsl(var(--md-primary-hue), 12%, 22%);
+      
+      --md-sys-color-error: hsl(0, 75%, 65%);
+      --md-sys-color-on-error: hsl(0, 100%, 10%);
+    }
+
+    /* Light Theme overrides */
+    body.light-theme {
+      --md-sys-color-primary: hsl(var(--md-primary-hue), 60%, 40%);
+      --md-sys-color-on-primary: #ffffff;
+      --md-sys-color-primary-container: hsl(var(--md-primary-hue), 70%, 85%);
+      --md-sys-color-on-primary-container: hsl(var(--md-primary-hue), 80%, 15%);
+      
+      --md-sys-color-secondary: hsl(var(--md-primary-hue), 20%, 45%);
+      --md-sys-color-on-secondary: #ffffff;
+      --md-sys-color-secondary-container: hsl(var(--md-primary-hue), 30%, 88%);
+      --md-sys-color-on-secondary-container: hsl(var(--md-primary-hue), 40%, 20%);
+      
+      --md-sys-color-surface: hsl(var(--md-primary-hue), 20%, 96%);
+      --md-sys-color-on-surface: hsl(var(--md-primary-hue), 15%, 12%);
+      --md-sys-color-surface-variant: hsl(var(--md-primary-hue), 15%, 88%);
+      --md-sys-color-on-surface-variant: hsl(var(--md-primary-hue), 15%, 30%);
+      
+      --md-sys-color-background: hsl(var(--md-primary-hue), 20%, 94%);
+      --md-sys-color-on-background: hsl(var(--md-primary-hue), 15%, 10%);
+      
+      --md-sys-color-outline: hsl(var(--md-primary-hue), 10%, 50%);
+      --md-sys-color-outline-variant: hsl(var(--md-primary-hue), 12%, 78%);
+      
+      --md-sys-color-error: hsl(0, 75%, 40%);
+      --md-sys-color-on-error: #ffffff;
+    }
+
+    /* OLED Black overrides */
+    body.oled-black {
+      --md-sys-color-primary: hsl(var(--md-primary-hue), 60%, 75%);
+      --md-sys-color-on-primary: #000000;
+      --md-sys-color-primary-container: #1a1a1a;
+      --md-sys-color-on-primary-container: #e0e0e0;
+      
+      --md-sys-color-secondary: hsl(var(--md-primary-hue), 20%, 70%);
+      --md-sys-color-on-secondary: #000000;
+      --md-sys-color-secondary-container: #121212;
+      --md-sys-color-on-secondary-container: #c0c0c0;
+      
+      --md-sys-color-surface: #000000;
+      --md-sys-color-on-surface: #ffffff;
+      --md-sys-color-surface-variant: #0c0c0c;
+      --md-sys-color-on-surface-variant: #a0a0a0;
+      
+      --md-sys-color-background: #000000;
+      --md-sys-color-on-background: #ffffff;
+      
+      --md-sys-color-outline: #555555;
+      --md-sys-color-outline-variant: #222222;
+      
+      --md-sys-color-error: #ffb4ab;
+      --md-sys-color-on-error: #690005;
+    }
+    
+    /* Core Resets */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--md-sys-color-background);
+      color: var(--md-sys-color-on-background);
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+    
+    /* Top App Bar */
+    .top-app-bar {
+      height: 64px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--md-sys-color-outline-variant);
+      z-index: 10;
+    }
+    
+    .top-app-bar h1 {
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--md-sys-color-on-surface);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+    
+    /* Bottom Navigation Bar */
+    .bottom-navigation {
+      height: 80px;
+      background-color: var(--md-sys-color-surface-variant);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 1px solid var(--md-sys-color-outline-variant);
+      padding-bottom: 4px;
+      z-index: 10;
+    }
+    
+    .nav-destination {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--md-sys-color-on-surface-variant);
+      flex: 1;
+      height: 100%;
+      position: relative;
+    }
+    
+    .nav-icon-container {
+      width: 64px;
+      height: 32px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+      transition: background-color 0.2s ease;
+    }
+    
+    .nav-destination.active .nav-icon-container {
+      background-color: var(--md-sys-color-primary-container);
+      color: var(--md-sys-color-on-primary-container);
+    }
+    
+    .nav-label {
+      font-size: 12px;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+    
+    .nav-destination.active .nav-label {
+      color: var(--md-sys-color-primary);
+    }
+    
+    /* Content Switcher Screens */
+    .screen-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden; /* Lock page height to viewport, no scrolling allowed */
+    }
+    
+    .screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(15px);
+      transition: opacity 0.3s cubic-bezier(0.2, 0, 0, 1), transform 0.3s cubic-bezier(0.2, 0, 0, 1), visibility 0.3s;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; /* Lock content container heights and prevent scrolling */
+    }
+    
+    .screen.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    
+    /* ==========================================
+       MATERIAL 3 COMPONENT STYLING
+       ========================================== */
+       
+    /* Cards */
+    .m3-card {
+      background-color: var(--md-sys-color-surface-variant);
+      border-radius: 16px; /* M3 Medium Card */
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid var(--md-sys-color-outline-variant);
+      box-shadow: var(--elevation-1);
+    }
+    
+    .m3-card.elevated {
+      box-shadow: var(--elevation-2);
+    }
+    
+    .m3-card.clickable {
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+    
+    .m3-card.clickable:active {
+      background-color: hsl(var(--md-primary-hue), 15%, 22%);
+      transform: scale(0.98);
+    }
+    
+    /* Buttons */
+    .m3-btn {
+      height: 40px;
+      border-radius: 20px;
+      padding: 0 24px;
+      border: none;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+    
+    .m3-btn.filled {
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+    }
+    
+    .m3-btn.filled:active {
+      background-color: hsl(var(--md-primary-hue), 60%, 60%);
+      transform: scale(0.97);
+    }
+    
+    .m3-btn.tonal {
+      background-color: var(--md-sys-color-secondary-container);
+      color: var(--md-sys-color-on-secondary-container);
+    }
+    
+    .m3-btn.tonal:active {
+      background-color: hsl(var(--md-primary-hue), 20%, 25%);
+      transform: scale(0.97);
+    }
+    
+    .m3-btn.outlined {
+      background-color: transparent;
+      border: 1px solid var(--md-sys-color-outline);
+      color: var(--md-sys-color-primary);
+    }
+    
+    .m3-btn.outlined:active {
+      background-color: hsl(var(--md-primary-hue), 12%, 18%);
+      transform: scale(0.97);
+    }
+    
+    /* Floating Action Buttons (FABs) */
+    .m3-fab {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px; /* M3 Standard FAB */
+      background-color: var(--md-sys-color-primary-container);
+      color: var(--md-sys-color-on-primary-container);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      box-shadow: var(--elevation-3);
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+    
+    .m3-fab:active {
+      transform: scale(0.95);
+      background-color: hsl(var(--md-primary-hue), 50%, 30%);
+    }
+    
+    .m3-fab.large {
+      width: 96px;
+      height: 96px;
+      border-radius: 28px;
+    }
+    
+    /* Dynamic Theme Picker */
+    .theme-picker-container {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 8px 0;
+      scrollbar-width: none;
+    }
+    
+    .theme-picker-container::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .color-seed-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: border-color 0.2s ease;
+    }
+    
+    .color-seed-btn.active {
+      border-color: var(--md-sys-color-on-background);
+    }
+    
+    /* Input Elements */
+    .m3-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--md-sys-color-outline-variant);
+      outline: none;
+      margin: 12px 0;
+    }
+    
+    .m3-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--md-sys-color-primary);
+      cursor: pointer;
+      box-shadow: var(--elevation-1);
+      transition: transform 0.1s ease;
+    }
+    
+    .m3-slider::-webkit-slider-thumb:active {
+      transform: scale(1.3);
+    }
+    
+    /* File input override */
+    .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+    }
+    
+    .file-input-wrapper input[type=file] {
+      font-size: 100px;
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    
+    /* ==========================================
+       READER / RSVP RENDERER STYLING
+       ========================================== */
+    .reader-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+    
+    .rsvp-box {
+      width: 100%;
+      max-width: 500px;
+      height: 140px;
+      background-color: var(--md-sys-color-surface-variant);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      font-size: 40px;
+      font-weight: 500;
+      border: 1px solid var(--md-sys-color-outline-variant);
+      overflow: hidden;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+    
+    /* Crosshairs anchors centered rigidly at exactly 40% */
+    .rsvp-anchor-top, .rsvp-anchor-bottom {
+      position: absolute;
+      width: 2px;
+      height: 14px;
+      background-color: var(--md-sys-color-primary);
+      left: 40%; /* Rigorous fixed percentage */
+      opacity: 0.8;
+      z-index: 5;
+    }
+    
+    .rsvp-anchor-top { top: 0; }
+    .rsvp-anchor-bottom { bottom: 0; }
+    
+    /* Absolute precision RSVP typography container */
+    .rsvp-word-wrapper {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      font-family: 'Outfit', sans-serif;
+    }
+    
+    .rsvp-left-block {
+      position: absolute;
+      top: 50%;
+      right: 60%; /* Ends rigidly at exactly 40% */
+      width: 40%;
+      text-align: right;
+      white-space: pre;
+      overflow: visible;
+      transform: translate(-0.25ch, -50%); /* Shifts blocks leftwards to center ORP under 40% mark */
+    }
+    
+    .rsvp-right-block {
+      position: absolute;
+      top: 50%;
+      left: 40%; /* Starts rigidly at exactly 40% */
+      width: 60%;
+      text-align: left;
+      white-space: pre;
+      overflow: visible;
+      transform: translate(-0.25ch, -50%); /* Shifts blocks leftwards to center ORP under 40% mark */
+    }
+    
+    .orp-letter {
+      color: var(--md-sys-color-primary);
+      font-weight: 700;
+    }
+    
+    .rsvp-placeholder {
+      font-size: 20px;
+      color: var(--md-sys-color-on-surface-variant);
+      opacity: 0.6;
+      text-align: center;
+      padding: 0 16px;
+    }
+    
+    /* Dynamic list items */
+    .m3-list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background-color: hsl(var(--md-primary-hue), 12%, 12%);
+      margin-bottom: 8px;
+      border: 1px solid var(--md-sys-color-outline-variant);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+    
+    .m3-list-item-title {
+      font-weight: 500;
+      color: var(--md-sys-color-on-surface);
+      font-size: 16px;
+    }
+    
+    .m3-list-item-subtitle {
+      font-size: 12px;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+    
+    /* Controls Section */
+    .controls-panel {
+      padding: 16px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .play-deck-container {
+      position: relative;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .play-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+    }
+
+    /* Small mobile screens (under 480px width) */
+    @media (max-width: 479px) {
+      .play-badges-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-top: 4px;
+      }
+      
+      .player-deck-badge {
+        position: static !important;
+        transform: none !important;
+        font-size: 13px;
+        font-weight: 500;
+      }
+      
+      #chapter-nav-display {
+        color: var(--md-sys-color-primary);
+      }
+    }
+
+    /* Large tablet/desktop screens (480px width and up) */
+    @media (min-width: 480px) {
+      .play-badges-row {
+        display: block;
+      }
+
+      .player-deck-badge {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+        font-size: 13px;
+        font-weight: 500;
+      }
+      
+      .left-wing {
+        left: 0;
+      }
+      
+      .right-wing {
+        right: 0;
+      }
+      
+      #chapter-nav-display {
+        color: var(--md-sys-color-primary);
+      }
+    }
+    
+    .speed-bubble {
+      background-color: var(--md-sys-color-secondary-container);
+      color: var(--md-sys-color-on-secondary-container);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 500;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .speed-bubble:active {
+      background-color: var(--md-sys-color-primary-container);
+    }
+    
+    /* Bottom Sheet Dialog */
+    .bottom-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: var(--md-sys-color-surface);
+      border-radius: 28px 28px 0 0;
+      border-top: 1px solid var(--md-sys-color-outline-variant);
+      box-shadow: var(--elevation-3);
+      padding: 24px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+      z-index: 20;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    
+    .bottom-sheet.open {
+      transform: translateY(0);
+    }
+    
+    .bottom-sheet-handle {
+      width: 32px;
+      height: 4px;
+      border-radius: 2px;
+      background-color: var(--md-sys-color-outline);
+      margin: 0 auto 16px auto;
+    }
+    
+    /* Overlay background */
+    .sheet-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 15;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s;
+    }
+    
+    .sheet-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    /* SVGs Icons inline helper styling */
+    .icon-m3 {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+    
+    /* SVG icon wrapper on Fab */
+    .m3-fab .icon-m3 {
+      width: 28px;
+      height: 28px;
+    }
+    
+    /* Book and Chapter Selectors for Reader Screen */
+    .reader-book-selectors {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      width: 100%;
+    }
+    
+    .reader-select-dropdown {
+      flex: 1;
+      background-color: var(--md-sys-color-surface-variant);
+      color: var(--md-sys-color-on-surface-variant);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+    
+    /* OLED Black Mode overrides */
+    body.oled-black {
+      background-color: #000000 !important;
+      color: #ffffff !important;
+    }
+    
+    body.oled-black .m3-card,
+    body.oled-black .m3-list-item,
+    body.oled-black .bottom-sheet,
+    body.oled-black select {
+      background-color: #0c0c0c !important;
+      border-color: #222222 !important;
+      box-shadow: none !important;
+    }
+    
+    body.oled-black .rsvp-box {
+      background-color: #000000 !important;
+      border-color: #222222 !important;
+    }
+    
+    body.oled-black .bottom-navigation {
+      background-color: #000000 !important;
+      border-top-color: #222222 !important;
+    }
+
+    body.oled-black .top-app-bar {
+      border-bottom-color: #222222 !important;
+    }
+    
+    /* Immersive Focus Mode overrides */
+    body.immersive-mode .top-app-bar {
+      display: none !important;
+    }
+    
+    body.immersive-mode .bottom-navigation {
+      display: none !important;
+    }
+    
+    body.immersive-mode .controls-panel {
+      display: none !important;
+    }
+    
+    body.immersive-mode .screen {
+      padding: 0 !important;
+    }
+    
+    body.immersive-mode .reader-book-selectors {
+      display: none !important;
+    }
+    
+    body.immersive-mode .reader-area {
+      height: 100vh !important;
+      width: 100vw !important;
+      padding: 0 !important;
+    }
+    
+    body.immersive-mode .rsvp-box {
+      max-width: 100% !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      border-radius: 0 !important;
+      border: none !important;
+      background-color: var(--md-sys-color-background) !important;
+    }
+    
+    body.oled-black.immersive-mode .rsvp-box {
+      background-color: #000000 !important;
+    }
+    
+    body.immersive-mode #rsvp-word-render {
+      font-size: 56px !important;
+    }
+    
+    /* Floating exit Focus mode trigger */
+    .exit-immersive-btn {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      width: 44px;
+      height: 44px;
+      border-radius: 22px;
+      background-color: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      z-index: 100;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    
+    body.immersive-mode .exit-immersive-btn {
+      display: flex;
+    }
+    
+    .exit-immersive-btn:active {
+      background-color: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top App Bar -->
+  <header class="top-app-bar">
+    <h1 id="app-title-display">Brainrot Reader</h1>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <!-- Enter Fullscreen Focus Button -->
+      <button class="m3-btn outlined" id="fullscreen-trigger-btn" style="padding: 0 10px; height: 36px; border-radius: 18px;" title="Focus Mode">
+        <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M120-120v-200h80v120h120v80H120Zm520 0v-80h120v-120h80v200H640ZM200-640v-120h120v-80H120v200h80Zm440 0v-200h200v200h-80v-120H640Z"/></svg>
+      </button>
+      <!-- Settings Cog Button -->
+      <button class="m3-btn outlined" id="settings-trigger-btn" style="padding: 0 10px; height: 36px; border-radius: 18px;" title="Configurations">
+        <svg class="icon-m3" viewBox="0 -960 960 960"><path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5t1-13.5l-103-78 110-190 119 50q11-8 23-15t25-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5t-1 13.5l103 78-110 190-119-50q-11 8-23 15t-25 12L590-80H370Zm112-260q58 0 99-41t41-99q0-58-41-99t-99-41q-58 0-99 41t-41 99q0 58 41 99t99 41Z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Floating exit focus mode button -->
+  <button class="exit-immersive-btn" id="exit-focus-mode-btn" title="Exit Focus Mode">
+    <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M240-120v-120H120v-80h200v200h-80Zm480 0v-200h200v80H800v120h-80ZM120-640v-80h120v-120h80v200H120Zm600 0v-200h80v120h120v80H720Z"/></svg>
+  </button>
+
+  <!-- Main Viewports Screens -->
+  <main class="screen-container">
+    
+    <!-- SCREEN 1: RSVP READER -->
+    <section class="screen active" id="screen-reader">
+      <!-- Book & Chapter selectors directly on the reader page! -->
+      <div class="reader-book-selectors">
+        <select class="reader-select-dropdown" id="reader-book-select">
+          <option value="">Choose Book...</option>
+        </select>
+        <select class="reader-select-dropdown" id="reader-chapter-select" disabled>
+          <option value="">Select Chapter...</option>
+        </select>
+      </div>
+
+      <div class="reader-area">
+        <!-- RSVP Dynamic display box -->
+        <div class="rsvp-box" id="rsvp-display-box" title="Double tap to toggle Focus Mode">
+          <div class="rsvp-anchor-top"></div>
+          <div class="rsvp-word-wrapper" id="rsvp-word-render" style="display: none;">
+            <div class="rsvp-left-block"><span id="wp-prefix"></span></div><div class="rsvp-right-block"><span class="orp-letter" id="wp-orp"></span><span id="wp-suffix"></span></div>
+          </div>
+          <div class="rsvp-placeholder" id="rsvp-placeholder-text">
+            Choose a book at the top or upload new ePub files in the Library tab.
+          </div>
+          <div class="rsvp-anchor-bottom"></div>
+        </div>
+      </div>
+      
+      <!-- Timing Slider & Chapter Navigator UI -->
+      <div class="controls-panel">
+        <!-- Word count & seek percentage bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: -4px;">
+          <span style="font-size: 13px; font-weight: 500; opacity: 0.8;" id="word-count-display">Word 0 of 0</span>
+          <span style="font-size: 12px; opacity: 0.7;" id="seek-percentage-display">0%</span>
+        </div>
+        
+        <!-- RSVP Timeline Seek Slider -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 12px; opacity: 0.7;" id="seek-time-start">0%</span>
+          <input type="range" class="m3-slider" id="reader-seek-bar" min="0" max="100" value="0">
+          <span style="font-size: 12px; opacity: 0.7;" id="seek-time-end">100%</span>
+        </div>
+
+        <!-- Symmetrical S-Deck Responsive Player controls -->
+        <div class="play-deck-container">
+          <div class="play-row">
+            <!-- Prev Chapter -->
+            <button class="m3-fab" id="prev-chapter-btn" style="width: 44px; height: 44px; border-radius: 12px; background-color: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container);" title="Previous Chapter">
+              <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M220-240v-480h80v480h-80Zm520 0L380-480l360-240v480Z"/></svg>
+            </button>
+            
+            <!-- Rewind 10 words (Circular arrow) -->
+            <button class="m3-fab" id="rewind-btn" style="width: 44px; height: 44px; border-radius: 12px;" title="Rewind 10 words">
+              <svg class="icon-m3" viewBox="0 0 24 24">
+                <path d="M12 5V1L7 6l5 5V7c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6H4c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8zm-1.1 11H10v-3.3L9 13v-.7h1.9v4.2zm2.6-1.5c0 .5-.1.9-.3 1.1-.2.3-.5.4-.9.4s-.7-.1-.9-.4c-.2-.2-.3-.6-.3-1.1v-1.3c0-.5.1-.9.3-1.1.2-.3.5-.4.9-.4s.7.1.9.4c.2.2.3.6.3 1.1v1.3zm-.8-1.4c0-.3 0-.6-.1-.7s-.2-.2-.3-.2-.2.1-.3.2-.1.4-.1.7v1.5c0 .3 0 .5.1.7s.2.2.3.2.2-.1.3-.2.1-.4.1-.7v-1.5z" fill="currentColor"/>
+              </svg>
+            </button>
+            
+            <!-- Play Pause -->
+            <button class="m3-fab large" id="play-pause-btn" style="width: 64px; height: 64px; border-radius: 20px;">
+              <svg class="icon-m3" id="play-icon" viewBox="0 -960 960 960"><path d="M320-203v-554l440 277-440 277Z"/></svg>
+              <svg class="icon-m3" id="pause-icon" viewBox="0 -960 960 960" style="display: none;"><path d="M560-200v-560h160v560H560Zm-320 0v-560h160v560H240Z"/></svg>
+            </button>
+            
+            <!-- Fast Forward 10 words (Circular arrow) -->
+            <button class="m3-fab" id="ff-btn" style="width: 44px; height: 44px; border-radius: 12px;" title="Forward 10 words">
+              <svg class="icon-m3" viewBox="0 0 24 24">
+                <path d="M12 5V1l5 5-5 5V7c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6h2c0 4.4-3.6 8-8 8s-8-3.6-8-8 3.6-8 8-8zm1.9 11h-1v-4.2h-1.9v-.7L12.9 11h1v5zm2.6-1.5c0 .5-.1.9-.3 1.1-.2.3-.5.4-.9.4s-.7-.1-.9-.4c-.2-.2-.3-.6-.3-1.1v-1.3c0-.5.1-.9.3-1.1.2-.3.5-.4.9-.4s.7.1.9.4c.2.2.3.6.3 1.1v1.3zm-.8-1.4c0-.3 0-.6-.1-.7s-.2-.2-.3-.2-.2.1-.3.2-.1.4-.1.7v1.5c0 .3 0 .5.1.7s.2.2.3.2.2-.1.3-.2.1-.4.1-.7v-1.5z" fill="currentColor"/>
+              </svg>
+            </button>
+            
+            <!-- Next Chapter -->
+            <button class="m3-fab" id="next-chapter-btn" style="width: 44px; height: 44px; border-radius: 12px; background-color: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container);" title="Next Chapter">
+              <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M660-240v-480h80v480h-80Zm-440 0 360-240-360-240v480Z"/></svg>
+            </button>
+          </div>
+          
+          <!-- Symmetrical info badges wrapper -->
+          <div class="play-badges-row">
+            <span class="player-deck-badge left-wing" id="chapter-nav-display">Chapter -- of --</span>
+            <span class="speed-bubble player-deck-badge right-wing" id="wpm-display" title="Adjust WPM">250 WPM</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 2: OFFLINE LIBRARY -->
+    <section class="screen" id="screen-library">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-size: 22px; font-weight: 500;">Offline ePubs</h2>
+        
+        <!-- Upload button wrapper -->
+        <div class="file-input-wrapper">
+          <button class="m3-btn filled">
+            <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
+            Upload ePub
+          </button>
+          <input type="file" id="epub-file-uploader" accept=".epub">
+        </div>
+      </div>
+      
+      <!-- Books scrollable list -->
+      <div style="flex: 1; overflow-y: auto;" id="library-books-list">
+        <!-- Rendered dynamically -->
+        <div class="rsvp-placeholder" style="margin-top: 40px;">No books uploaded yet. Tap "Upload ePub" above to save one into your phone storage.</div>
+      </div>
+    </section>
+
+    <!-- SCREEN 3: OFFLINE MUSIC -->
+    <section class="screen" id="screen-music">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-size: 22px; font-weight: 500;">Ambient MP3s</h2>
+        
+        <div class="file-input-wrapper">
+          <button class="m3-btn filled">
+            <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
+            Add Audio
+          </button>
+          <input type="file" id="music-file-uploader" accept=".mp3">
+        </div>
+      </div>
+
+      <!-- Music Volume controls -->
+      <div class="m3-card" style="margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 14px; font-weight: 500;">Background Volume</span>
+          <span style="font-size: 12px; opacity: 0.8;" id="music-volume-display">50%</span>
+        </div>
+        <input type="range" class="m3-slider" id="music-volume-slider" min="0" max="100" value="50">
+      </div>
+
+      <!-- Audio Track listing -->
+      <div style="flex: 1; overflow-y: auto;" id="music-tracks-list">
+        <div class="rsvp-placeholder" style="margin-top: 40px;">No offline MP3 tracks saved. Tap "Add Audio" above to save music into secure storage.</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom Navigation pill segment tabs -->
+  <nav class="bottom-navigation">
+    <div class="nav-destination active" data-target="screen-reader">
+      <div class="nav-icon-container">
+        <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M280-280h280v-80H280v80Zm0-160h400v-80H280v80Zm0-160h400v-80H280v80ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0 0v-560 560Z"/></svg>
+      </div>
+      <span class="nav-label">Reader</span>
+    </div>
+    
+    <div class="nav-destination" data-target="screen-library">
+      <div class="nav-icon-container">
+        <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M120-120v-80h80v-520q0-33 23.5-56.5T280-800h320q33 0 56.5 23.5T680-720v520h80v80H120Zm160-80h320v-520H280v520Zm120-160 100-100-100-100-56 56 44 44-44 44 56 56Zm-60-240h200v-60H320v60Zm-40 480v-520 520Z"/></svg>
+      </div>
+      <span class="nav-label">Library</span>
+    </div>
+    
+    <div class="nav-destination" data-target="screen-music">
+      <div class="nav-icon-container">
+        <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M400-120q-66 0-113-47t-47-113q0-66 47-113t113-47q23 0 42.5 5.5T480-418v-422h240v160H560v520q0 66-47 113t-113 47Zm0-80q33 0 56.5-23.5T480-280v-54h-80q-33 0-56.5 23.5T320-254q0 33 23.5 56.5T400-200Zm0-80Z"/></svg>
+      </div>
+      <span class="nav-label">Ambient</span>
+    </div>
+  </nav>
+
+  <!-- Material 3 Bottom Sheet Dialog (Settings / Customizations) -->
+  <div class="sheet-overlay" id="sheet-overlay"></div>
+  <div class="bottom-sheet" id="settings-bottom-sheet">
+    <div class="bottom-sheet-handle"></div>
+    <h3 style="font-size: 20px; font-weight: 500; margin-bottom: 16px;">System Configurations</h3>
+    
+    <!-- Material You Color Theme Generator Seeds -->
+    <div style="margin-bottom: 20px;">
+      <h4 style="font-size: 14px; font-weight: 500; color: var(--md-sys-color-primary); margin-bottom: 8px;">Material You Theme</h4>
+      <div class="theme-picker-container">
+        <!-- Seed Hues representing different visual tones -->
+        <div class="color-seed-btn active" style="background-color: #6750A4;" data-hue="270"></div> <!-- Lavender -->
+        <div class="color-seed-btn" style="background-color: #386A20;" data-hue="100"></div> <!-- Basil Green -->
+        <div class="color-seed-btn" style="background-color: #0061A4;" data-hue="210"></div> <!-- Google Blue -->
+        <div class="color-seed-btn" style="background-color: #A23F16;" data-hue="18"></div>  <!-- Terracotta -->
+        <div class="color-seed-btn" style="background-color: #B5226E;" data-hue="330"></div> <!-- Raspberry -->
+        <div class="color-seed-btn" style="background-color: #006A6A;" data-hue="180"></div> <!-- Teal Ocean -->
+      </div>
+    </div>
+    
+    <!-- SPEED (WPM) CONFIG -->
+    <div style="margin-bottom: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h4 style="font-size: 14px; font-weight: 500; color: var(--md-sys-color-primary);">Speed Ticker Rates</h4>
+        <span style="font-size: 13px; opacity: 0.8;" id="sheet-wpm-label">250 WPM</span>
+      </div>
+      <input type="range" class="m3-slider" id="wpm-slider" min="50" max="1000" step="10" value="250">
+    </div>
+
+    <!-- VOICE SELECTIONS (TTS) -->
+    <div style="margin-bottom: 20px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+        <h4 style="font-size: 14px; font-weight: 500; color: var(--md-sys-color-primary);">Speech Utterance Engine</h4>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="use-tts-toggle" checked style="width: 16px; height: 16px;">
+          <label for="use-tts-toggle" style="font-size: 13px; font-weight: 500;">Enable Speech</label>
+        </div>
+      </div>
+      <select id="tts-voice-selector" class="m3-card" style="width: 100%; border-radius: 8px; font-family: inherit; font-size: 14px; padding: 8px; outline: none; background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface-variant);">
+        <!-- Populated dynamically -->
+        <option value="">Detecting local device speech synthesizers...</option>
+      </select>
+    </div>
+
+    <!-- Theme Selection Mode Dropdown -->
+    <div style="margin-bottom: 20px;">
+      <h4 style="font-size: 14px; font-weight: 500; color: var(--md-sys-color-primary); margin-bottom: 8px;">Aesthetic Theme Mode</h4>
+      <select id="theme-mode-selector" class="m3-card" style="width: 100%; border-radius: 8px; font-family: inherit; font-size: 14px; padding: 8px; outline: none; background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface-variant); border: 1px solid var(--md-sys-color-outline-variant);">
+        <option value="dark">Material 3 Dark</option>
+        <option value="light">Material 3 Light</option>
+        <option value="oled">OLED Pure Black</option>
+      </select>
+    </div>
+
+    <!-- Theme Customization Toggles -->
+    <div style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 4px;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h4 style="font-size: 14px; font-weight: 500; color: var(--md-sys-color-primary);">Dynamic Theme Rotation</h4>
+        <input type="checkbox" id="random-hue-toggle" style="width: 18px; height: 18px; cursor: pointer;">
+      </div>
+      <span style="font-size: 11px; opacity: 0.6; margin-top: -2px;">Cycles theme colors (Lavender, Green, Blue, Terracotta, etc.) automatically on each new chapter.</span>
+    </div>
+
+    <button class="m3-btn tonal" id="close-settings-btn" style="width: 100%;">Close</button>
+  </div>
+
+  <!-- JSZip loading CDN with fallback cache capability -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  
+  <!-- Main Standalone PWA Engine Script Link -->
+  <script src="app.js"></script>
+
+  <!-- PWA Installer & UI binder -->
+  <script>
+    // Register PWA Service Worker for offline operations
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('Offline service worker registered:', reg.scope))
+          .catch(err => console.error('Service worker installation failure:', err));
+      });
+    }
+
+    // Material You dynamic color theme generator applicator
+    const colorSeedButtons = document.querySelectorAll('.color-seed-btn');
+    const metaThemeColor = document.getElementById('meta-theme-color');
+
+    const presetHues = [270, 100, 210, 18, 330, 180];
+
+    function applyDynamicHue(hue) {
+      document.documentElement.style.setProperty('--seed-hue', hue);
+      localStorage.setItem('m3-seed-hue', hue);
+      
+      const theme = localStorage.getItem("m3-theme-mode") || "dark";
+      if (theme === "light") {
+        metaThemeColor.setAttribute("content", `hsl(${hue}, 20%, 94%)`);
+      } else if (theme === "oled") {
+        metaThemeColor.setAttribute("content", "#000000");
+      } else {
+        metaThemeColor.setAttribute("content", `hsl(${hue}, 15%, 6%)`);
+      }
+    }
+
+    colorSeedButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        colorSeedButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const hue = btn.getAttribute('data-hue');
+        applyDynamicHue(hue);
+      });
+    });
+
+    // Restore saved Seed hue on boot
+    const savedHue = localStorage.getItem('m3-seed-hue');
+    if (savedHue) {
+      applyDynamicHue(savedHue);
+      const activeBtn = document.querySelector(`.color-seed-btn[data-hue="${savedHue}"]`);
+      if (activeBtn) {
+        colorSeedButtons.forEach(b => b.classList.remove('active'));
+        activeBtn.classList.add('active');
+      }
+    }
+
+    // Initialize application interface bindings
+    document.addEventListener("DOMContentLoaded", async () => {
+      // Boot Standalone Engine
+      await engine.init();
+      
+      // Load and render dynamic listings
+      refreshLibraryUI();
+      refreshMusicUI();
+      populateVoicesSelector();
+      populateBookSelector();
+
+      // Hook engine event bridges
+      engine.onUIUpdate = () => updateReaderDisplay();
+      engine.onChapterFinished = async () => {
+        // Auto-advance to next chapter if available and auto-play
+        if (engine.currentChapterIdx + 1 < engine.chapters.length) {
+          await loadNewChapter(engine.currentChapterIdx + 1);
+          setTimeout(() => {
+            engine.play();
+            document.getElementById('play-icon').style.display = 'none';
+            document.getElementById('pause-icon').style.display = 'block';
+          }, 300);
+        } else {
+          document.getElementById('play-icon').style.display = 'block';
+          document.getElementById('pause-icon').style.display = 'none';
+        }
+      };
+      
+      // Screen switching navigation
+      const navDestinations = document.querySelectorAll(".nav-destination");
+      const screens = document.querySelectorAll(".screen");
+      
+      navDestinations.forEach(dest => {
+        dest.addEventListener("click", () => {
+          navDestinations.forEach(d => d.classList.remove("active"));
+          dest.classList.add("active");
+          
+          const target = dest.getAttribute("data-target");
+          screens.forEach(s => s.classList.remove("active"));
+          document.getElementById(target).classList.add("active");
+        });
+      });
+
+      // Settings bottom sheet triggers
+      const settingsSheet = document.getElementById("settings-bottom-sheet");
+      const sheetOverlay = document.getElementById("sheet-overlay");
+      
+      function openSettings() {
+        settingsSheet.classList.add("open");
+        sheetOverlay.classList.add("active");
+      }
+      
+      function closeSettings() {
+        settingsSheet.classList.remove("open");
+        sheetOverlay.classList.remove("active");
+      }
+
+      document.getElementById("settings-trigger-btn").addEventListener("click", openSettings);
+      document.getElementById("close-settings-btn").addEventListener("click", closeSettings);
+      sheetOverlay.addEventListener("click", closeSettings);
+
+      // Book & Chapter dropdown selectors on Reader screen
+      const readerBookSelect = document.getElementById("reader-book-select");
+      const readerChapterSelect = document.getElementById("reader-chapter-select");
+
+      // Populate book dropdown list
+      async function populateBookSelector() {
+        const books = await engine.getBooksList();
+        readerBookSelect.innerHTML = '<option value="">Choose Book...</option>';
+        books.forEach(book => {
+          const opt = document.createElement("option");
+          opt.value = book.name;
+          opt.textContent = book.name;
+          readerBookSelect.appendChild(opt);
+        });
+        
+        // Restore active book if saved
+        const savedBook = localStorage.getItem("m3-active-book");
+        if (savedBook && books.some(b => b.name === savedBook)) {
+          readerBookSelect.value = savedBook;
+          const event = new Event('change');
+          readerBookSelect.dispatchEvent(event);
+        }
+      }
+
+      readerBookSelect.addEventListener("change", async () => {
+        const bookName = readerBookSelect.value;
+        localStorage.setItem("m3-active-book", bookName || "");
+        
+        if (!bookName) {
+          readerChapterSelect.innerHTML = '<option value="">Select Chapter...</option>';
+          readerChapterSelect.disabled = true;
+          return;
+        }
+        
+        try {
+          document.getElementById("rsvp-placeholder-text").textContent = "Opening book chapters...";
+          document.getElementById("rsvp-word-render").style.display = "none";
+          document.getElementById("rsvp-placeholder-text").style.display = "block";
+          
+          const chapters = await engine.extractEpubChapters(bookName);
+          
+          readerChapterSelect.innerHTML = '<option value="">Select Chapter...</option>';
+          chapters.forEach(chap => {
+            const opt = document.createElement("option");
+            opt.value = chap.index;
+            opt.textContent = chap.title;
+            readerChapterSelect.appendChild(opt);
+          });
+          
+          readerChapterSelect.disabled = false;
+          
+          // Auto-load last saved chapter index or default to 0
+          const savedChap = localStorage.getItem(`m3-active-chap-${bookName}`);
+          const targetChapIdx = (savedChap && parseInt(savedChap) < chapters.length) ? parseInt(savedChap) : 0;
+          readerChapterSelect.value = targetChapIdx;
+          await loadNewChapter(targetChapIdx);
+        } catch (err) {
+          alert("Failed loading ePUB book: " + err.message);
+        }
+      });
+
+      readerChapterSelect.addEventListener("change", async () => {
+        const chapIdx = parseInt(readerChapterSelect.value);
+        await loadNewChapter(chapIdx);
+      });
+
+      // Focus / Fullscreen Mode implementation
+      const fullscreenBtn = document.getElementById("fullscreen-trigger-btn");
+      const exitFocusBtn = document.getElementById("exit-focus-mode-btn");
+      const rsvpDisplayBox = document.getElementById("rsvp-display-box");
+
+      function toggleImmersiveMode() {
+        document.body.classList.toggle("immersive-mode");
+        const isFocus = document.body.classList.contains("immersive-mode");
+        localStorage.setItem("m3-focus-mode", isFocus ? "true" : "false");
+      }
+
+      fullscreenBtn.addEventListener("click", toggleImmersiveMode);
+      exitFocusBtn.addEventListener("click", toggleImmersiveMode);
+
+      // Double tap RSVP display to toggle Focus mode
+      let lastTapTime = 0;
+      rsvpDisplayBox.addEventListener("click", (e) => {
+        const now = new Date().getTime();
+        const delta = now - lastTapTime;
+        if (delta < 300 && delta > 0) {
+          toggleImmersiveMode();
+          e.preventDefault();
+        }
+        lastTapTime = now;
+      });
+
+      // Theme Mode configuration (Dark, Light, OLED Black)
+      const themeSelector = document.getElementById("theme-mode-selector");
+
+      function applyThemeMode(theme) {
+        document.body.classList.remove("light-theme", "oled-black");
+        
+        if (theme === "light") {
+          document.body.classList.add("light-theme");
+        } else if (theme === "oled") {
+          document.body.classList.add("oled-black");
+        }
+        
+        localStorage.setItem("m3-theme-mode", theme);
+        themeSelector.value = theme;
+        
+        // Also update the browser's theme-color meta tag
+        const metaTheme = document.getElementById("meta-theme-color");
+        if (metaTheme) {
+          const currentHue = parseInt(localStorage.getItem('m3-seed-hue') || '270');
+          if (theme === "light") {
+            metaTheme.setAttribute("content", `hsl(${currentHue}, 20%, 94%)`);
+          } else if (theme === "oled") {
+            metaTheme.setAttribute("content", "#000000");
+          } else {
+            metaTheme.setAttribute("content", `hsl(${currentHue}, 15%, 6%)`);
+          }
+        }
+      }
+
+      themeSelector.addEventListener("change", (e) => {
+        applyThemeMode(e.target.value);
+      });
+
+      // Restore theme setting on boot
+      const savedTheme = localStorage.getItem("m3-theme-mode") || "dark";
+      applyThemeMode(savedTheme);
+
+      // Random Color Seed Per Chapter configuration
+      const randomHueToggle = document.getElementById("random-hue-toggle");
+      randomHueToggle.addEventListener("change", (e) => {
+        engine.randomColorPerChapter = e.target.checked;
+        localStorage.setItem("m3-random-hue-chapter", e.target.checked ? "true" : "false");
+      });
+      
+      // Restore Random hue setting
+      engine.randomColorPerChapter = localStorage.getItem("m3-random-hue-chapter") === "true";
+      randomHueToggle.checked = engine.randomColorPerChapter;
+
+      // Engine parameter sliders and triggers
+      const wpmSlider = document.getElementById("wpm-slider");
+      const wpmDisplay = document.getElementById("wpm-display");
+      const sheetWpmLabel = document.getElementById("sheet-wpm-label");
+      
+      wpmSlider.addEventListener("input", (e) => {
+        const val = parseInt(e.target.value);
+        wpmDisplay.textContent = `${val} WPM`;
+        sheetWpmLabel.textContent = `${val} WPM`;
+        engine.setWpm(val);
+      });
+
+      // WPM speed bubble trigger settings sheet
+      wpmDisplay.addEventListener("click", openSettings);
+
+      const volumeSlider = document.getElementById("music-volume-slider");
+      const volumeDisplay = document.getElementById("music-volume-display");
+      
+      volumeSlider.addEventListener("input", (e) => {
+        const val = parseInt(e.target.value);
+        volumeDisplay.textContent = `${val}%`;
+        engine.setMusicVolume(val / 100);
+      });
+
+      // TTS Speech toggle settings
+      const ttsToggle = document.getElementById("use-tts-toggle");
+      ttsToggle.addEventListener("change", (e) => {
+        engine.useTTS = e.target.checked;
+        if (engine.isPlaying) {
+          engine.play(); // Re-trigger ticks with selected sound profile
+        }
+      });
+
+      // Speech Voice Selector dropdown binding
+      const voiceSelector = document.getElementById("tts-voice-selector");
+      voiceSelector.addEventListener("change", (e) => {
+        const selectedName = e.target.value;
+        const voice = engine.availableVoices.find(v => v.name === selectedName);
+        if (voice) {
+          engine.selectedVoice = voice;
+          if (engine.isPlaying) {
+            engine.play();
+          }
+        }
+      });
+
+      // Seek bar timeline binding
+      const seekBar = document.getElementById("reader-seek-bar");
+      seekBar.addEventListener("input", (e) => {
+        const val = parseInt(e.target.value);
+        engine.seekToPercent(val);
+      });
+
+      // Unified controls playback bar
+      const playPauseBtn = document.getElementById("play-pause-btn");
+      playPauseBtn.addEventListener("click", () => {
+        if (engine.isPlaying) {
+          engine.pause();
+          document.getElementById('play-icon').style.display = 'block';
+          document.getElementById('pause-icon').style.display = 'none';
+        } else {
+          engine.play();
+          document.getElementById('play-icon').style.display = 'none';
+          document.getElementById('pause-icon').style.display = 'block';
+        }
+      });
+
+      document.getElementById("rewind-btn").addEventListener("click", () => engine.rewind());
+      document.getElementById("ff-btn").addEventListener("click", () => engine.fastForward());
+
+      // Skip Chapters buttons
+      const prevChapterBtn = document.getElementById("prev-chapter-btn");
+      const nextChapterBtn = document.getElementById("next-chapter-btn");
+      
+      prevChapterBtn.addEventListener("click", async () => {
+        if (engine.currentChapterIdx - 1 >= 0) {
+          await loadNewChapter(engine.currentChapterIdx - 1);
+        }
+      });
+      
+      nextChapterBtn.addEventListener("click", async () => {
+        if (engine.currentChapterIdx + 1 < engine.chapters.length) {
+          await loadNewChapter(engine.currentChapterIdx + 1);
+        }
+      });
+
+      // ==========================================
+      // FILE UPLOADER HANDLERS
+      // ==========================================
+      
+      // ePub Uploader
+      const epubUploader = document.getElementById("epub-file-uploader");
+      epubUploader.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        try {
+          await engine.saveBook(file.name, file);
+          epubUploader.value = "";
+          
+          // Re-populate library tab list
+          refreshLibraryUI();
+          // Update Reader page select options
+          await populateBookSelector();
+          
+          // AUTO-SELECT newly uploaded book and jump straight to the Reader screen!
+          readerBookSelect.value = file.name;
+          const event = new Event('change');
+          await readerBookSelect.dispatchEvent(event);
+          
+          // Switch page view to reader
+          navDestinations.forEach(d => d.classList.remove("active"));
+          document.querySelector('.nav-destination[data-target="screen-reader"]').classList.add("active");
+          screens.forEach(s => s.classList.remove("active"));
+          document.getElementById("screen-reader").classList.add("active");
+          
+        } catch (err) {
+          alert("Failed storing ePUB book offline: " + err.message);
+        }
+      });
+
+      // Music Audio Uploader
+      const musicUploader = document.getElementById("music-file-uploader");
+      musicUploader.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        try {
+          const trackId = 'track-' + Date.now();
+          await engine.saveTrack(trackId, file.name, file);
+          musicUploader.value = "";
+          refreshMusicUI();
+        } catch (err) {
+          alert("Failed storing audio offline: " + err.message);
+        }
+      });
+
+      // ==========================================
+      // RENDERING ENGINE LIST WRAPPERS
+      // ==========================================
+      
+      async function refreshLibraryUI() {
+        const books = await engine.getBooksList();
+        const listContainer = document.getElementById("library-books-list");
+        
+        if (books.length === 0) {
+          listContainer.innerHTML = `<div class="rsvp-placeholder" style="margin-top: 40px;">No books uploaded yet. Tap "Upload ePub" above to save one into secure phone storage.</div>`;
+          return;
+        }
+        
+        listContainer.innerHTML = "";
+        books.forEach(book => {
+          const card = document.createElement("div");
+          card.className = "m3-card clickable";
+          
+          card.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div class="m3-list-item-title">${book.name}</div>
+                <div class="m3-list-item-subtitle">Added on ${new Date(book.addedAt).toLocaleDateString()}</div>
+              </div>
+              <button class="m3-btn outlined delete-book-trigger" data-name="${book.name}" style="height: 32px; padding: 0 12px; border-color: var(--md-sys-color-error); color: var(--md-sys-color-error); border-radius: 8px;">
+                Delete
+              </button>
+            </div>
+          `;
+          
+          // Card tap loads the book and switches to Reader
+          card.addEventListener("click", async (e) => {
+            if (e.target.classList.contains("delete-book-trigger")) return;
+            
+            // Auto-select book in Reader dropdown
+            readerBookSelect.value = book.name;
+            const event = new Event('change');
+            await readerBookSelect.dispatchEvent(event);
+            
+            // Switch navigation immediately to Reader tab!
+            navDestinations.forEach(d => d.classList.remove("active"));
+            document.querySelector('.nav-destination[data-target="screen-reader"]').classList.add("active");
+            screens.forEach(s => s.classList.remove("active"));
+            document.getElementById("screen-reader").classList.add("active");
+          });
+          
+          // Delete button trigger
+          card.querySelector(".delete-book-trigger").addEventListener("click", async (e) => {
+            e.stopPropagation();
+            if (confirm(`Delete book "${book.name}" from local storage?`)) {
+              await engine.deleteBook(book.name);
+              refreshLibraryUI();
+              populateBookSelector();
+            }
+          });
+          
+          listContainer.appendChild(card);
+        });
+      }
+
+      async function refreshMusicUI() {
+        const tracks = await engine.getTracksList();
+        const listContainer = document.getElementById("music-tracks-list");
+        
+        if (tracks.length === 0) {
+          listContainer.innerHTML = `<div class="rsvp-placeholder" style="margin-top: 40px;">No offline MP3 tracks saved. Tap "Add Audio" above to save music into secure storage.</div>`;
+          return;
+        }
+        
+        listContainer.innerHTML = "";
+        tracks.forEach(track => {
+          const card = document.createElement("div");
+          const isActive = engine.currentTrackId === track.id;
+          
+          card.className = "m3-list-item";
+          card.style.borderColor = isActive ? "var(--md-sys-color-primary)" : "var(--md-sys-color-outline-variant)";
+          
+          card.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px; flex: 1; cursor: pointer;" class="play-track-trigger">
+              <svg class="icon-m3" style="color: ${isActive ? 'var(--md-sys-color-primary)' : 'inherit'};" viewBox="0 -960 960 960"><path d="M400-280v-400l280 200-280 200Z"/></svg>
+              <div>
+                <div class="m3-list-item-title" style="color: ${isActive ? 'var(--md-sys-color-primary)' : 'inherit'};">${track.title}</div>
+                <div class="m3-list-item-subtitle">${isActive ? 'Active & Loop playing' : 'Tap to play background'}</div>
+              </div>
+            </div>
+            <button class="m3-btn outlined delete-track-trigger" data-id="${track.id}" style="height: 32px; padding: 0 12px; border-color: var(--md-sys-color-error); color: var(--md-sys-color-error); border-radius: 8px;">
+              Delete
+            </button>
+          `;
+          
+          card.querySelector(".play-track-trigger").addEventListener("click", () => {
+            engine.playOfflineTrack(track.id);
+            refreshMusicUI();
+          });
+          
+          card.querySelector(".delete-track-trigger").addEventListener("click", async (e) => {
+            if (confirm("Delete audio track?")) {
+              await engine.deleteTrack(track.id);
+              if (engine.currentTrackId === track.id) {
+                engine.pauseOfflineTrack();
+                engine.currentTrackId = null;
+              }
+              refreshMusicUI();
+            }
+          });
+          
+          listContainer.appendChild(card);
+        });
+      }
+
+      function populateVoicesSelector() {
+        setTimeout(() => {
+          const voices = engine.loadVoices();
+          if (!voices || voices.length === 0) return;
+          
+          voiceSelector.innerHTML = "";
+          voices.forEach(voice => {
+            const opt = document.createElement("option");
+            opt.value = voice.name;
+            opt.textContent = `${voice.name} (${voice.lang})`;
+            if (engine.selectedVoice && engine.selectedVoice.name === voice.name) {
+              opt.selected = true;
+            }
+            voiceSelector.appendChild(opt);
+          });
+        }, 500); // Small timeout to ensure synthesis voices are fully loaded in Mobile Webviews
+      }
+
+      async function loadNewChapter(chapterIndex) {
+        try {
+          engine.pause(); // Pause playback if playing
+          document.getElementById('play-icon').style.display = 'block';
+          document.getElementById('pause-icon').style.display = 'none';
+          
+          document.getElementById("rsvp-placeholder-text").textContent = "Parsing and unzipping chapter words...";
+          document.getElementById("rsvp-word-render").style.display = "none";
+          document.getElementById("rsvp-placeholder-text").style.display = "block";
+          
+          await engine.loadChapterWords(engine.selectedBook, chapterIndex);
+          
+          // Check if dynamic theme rotation is active
+          if (engine.randomColorPerChapter) {
+            const currentHue = parseInt(localStorage.getItem('m3-seed-hue') || '270');
+            let idx = presetHues.indexOf(currentHue);
+            if (idx === -1) idx = 0;
+            // Rotate to the next preset hue!
+            const nextIdx = (idx + 1) % presetHues.length;
+            const newHue = presetHues[nextIdx];
+            applyDynamicHue(newHue);
+            
+            // Highlight the active HSL button in sheet
+            colorSeedButtons.forEach(b => {
+              if (parseInt(b.getAttribute('data-hue')) === newHue) {
+                b.classList.add('active');
+              } else {
+                b.classList.remove('active');
+              }
+            });
+          }
+          
+          // Set UI descriptors
+          document.getElementById("chapter-nav-display").textContent = `Chapter ${chapterIndex + 1} of ${engine.chapters.length}`;
+          document.getElementById("rsvp-placeholder-text").style.display = "none";
+          document.getElementById("rsvp-word-render").style.display = "block";
+          
+          // Sync dropdown and cache location
+          readerChapterSelect.value = chapterIndex;
+          localStorage.setItem(`m3-active-chap-${engine.selectedBook}`, chapterIndex);
+          
+          updateReaderDisplay();
+        } catch (err) {
+          alert("Failed loading chapter text: " + err.message);
+        }
+      }
+
+      // RSVP Reader Visual Synchronizer
+      function updateReaderDisplay() {
+        const word = engine.words[engine.currentIndex];
+        
+        if (!word) {
+          document.getElementById("wp-prefix").textContent = "";
+          document.getElementById("wp-orp").textContent = "";
+          document.getElementById("wp-suffix").textContent = "";
+          document.getElementById("word-count-display").textContent = "Word 0 of 0";
+          document.getElementById("seek-percentage-display").textContent = "0%";
+          return;
+        }
+
+        // Split word dynamically at ORP (Optimal Recognition Point)
+        const parts = engine.splitWordForOrp(word);
+        
+        document.getElementById("wp-prefix").textContent = parts.prefix;
+        document.getElementById("wp-orp").textContent = parts.char;
+        document.getElementById("wp-suffix").textContent = parts.suffix;
+
+        // Update seek progress bar percentage and word count display
+        const totalWords = engine.words.length;
+        const currentIdx = engine.currentIndex + 1;
+        document.getElementById("word-count-display").textContent = `Word ${currentIdx} of ${totalWords}`;
+        
+        if (totalWords > 0) {
+          const percent = Math.round((engine.currentIndex / (totalWords - 1)) * 100);
+          seekBar.value = percent;
+          document.getElementById("seek-percentage-display").textContent = `${percent}%`;
+        }
+      }
+    });
+  </script>
+</body>
+</html>
