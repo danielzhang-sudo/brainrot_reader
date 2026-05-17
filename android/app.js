@@ -19,9 +19,16 @@ class BrainrotEngine {
     
     // Audio / music states
     this.audioElement = new Audio();
-    this.audioElement.loop = true;
+    this.audioElement.loop = false; // managed by queue
     this.currentTrackId = null;
     this.musicVolume = 0.5;
+    this.musicMuted = false;
+    this.musicProgress = 0;
+    this.musicDuration = 0;
+    this.musicQueue = [];
+    this.musicQueueIndex = 0;
+    this.musicShuffle = false;
+    this.tracksListCache = []; // cached for title lookups
     
     // Web Audio API for normalization
     this.audioContext = null;
@@ -39,6 +46,14 @@ class BrainrotEngine {
     
     // ORP (Optimal Recognition Point) calculation
     this.orpPercentage = 0.35; 
+
+    // Bind audio events
+    this.audioElement.addEventListener('timeupdate', () => this.handleMusicTimeUpdate());
+    this.audioElement.addEventListener('ended', () => this.handleMusicEnded());
+    this.audioElement.addEventListener('loadedmetadata', () => {
+      this.musicDuration = this.audioElement.duration || 0;
+      this.triggerMusicUIUpdate();
+    });
   }
 
   async init() {
@@ -46,6 +61,26 @@ class BrainrotEngine {
     this.loadVoices();
     if (this.synth) {
       this.synth.onvoiceschanged = () => this.loadVoices();
+    }
+    // Build initial queue from stored tracks
+    await this.refreshTrackCache();
+    this.buildMusicQueueFromCache();
+  }
+
+  async refreshTrackCache() {
+    this.tracksListCache = await this.getTracksList();
+  }
+
+  buildMusicQueueFromCache() {
+    this.musicQueue = this.tracksListCache.map(t => t.id);
+    if (this.currentTrackId != null) {
+      const idx = this.musicQueue.indexOf(this.currentTrackId);
+      this.musicQueueIndex = idx >= 0 ? idx : 0;
+    } else {
+      this.musicQueueIndex = 0;
+    }
+    if (this.musicShuffle) {
+      this.toggleMusicShuffle();
     }
   }
 
@@ -159,6 +194,19 @@ class BrainrotEngine {
     });
   }
 
+  trackExistsByTitle(title) {
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(["tracks"], "readonly");
+      const store = transaction.objectStore("tracks");
+      const request = store.getAll();
+      request.onsuccess = () => {
+        const tracks = request.result || [];
+        resolve(tracks.some(t => t.title === title));
+      };
+      request.onerror = (e) => reject(e);
+    });
+  }
+
   deleteTrack(id) {
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction(["tracks"], "readwrite");
@@ -179,6 +227,11 @@ class BrainrotEngine {
       request.onsuccess = () => resolve(request.result ? request.result.file : null);
       request.onerror = (e) => reject(e);
     });
+  }
+
+  getTrackTitle(id) {
+    const t = this.tracksListCache.find(tr => tr.id === id);
+    return t ? t.title : "Unknown";
   }
 
   // ==========================================
@@ -484,6 +537,10 @@ class BrainrotEngine {
     this.audioElement.src = objectUrl;
     this.currentTrackId = trackId;
     
+    // Update queue index to match
+    const idx = this.musicQueue.indexOf(trackId);
+    if (idx !== -1) this.musicQueueIndex = idx;
+
     // Initialize Web Audio API chain for volume normalization
     if (!this.audioContext) {
       try {
@@ -503,17 +560,13 @@ class BrainrotEngine {
         this.compressor.connect(this.gainNode);
         this.gainNode.connect(this.audioContext.destination);
         
-        this.gainNode.gain.value = this.musicVolume;
+        this.gainNode.gain.value = this.musicMuted ? 0 : this.musicVolume;
       } catch (err) {
         console.warn("Web Audio API unavailable, falling back to standard volume:", err);
-        this.audioElement.volume = this.musicVolume;
+        this.audioElement.volume = this.musicMuted ? 0 : this.musicVolume;
       }
     } else {
-      if (this.gainNode) {
-        this.gainNode.gain.value = this.musicVolume;
-      } else {
-        this.audioElement.volume = this.musicVolume;
-      }
+      this.applyMusicVolume();
     }
     
     if (this.audioContext && this.audioContext.state === 'suspended') {
@@ -522,6 +575,7 @@ class BrainrotEngine {
     
     try {
       await this.audioElement.play();
+      this.triggerMusicUIUpdate();
     } catch (err) {
       console.warn("Autoplay block. Interactive play is required:", err);
     }
@@ -529,6 +583,7 @@ class BrainrotEngine {
 
   pauseOfflineTrack() {
     this.audioElement.pause();
+    this.triggerMusicUIUpdate();
   }
 
   resumeOfflineTrack() {
@@ -537,16 +592,114 @@ class BrainrotEngine {
         this.audioContext.resume();
       }
       this.audioElement.play();
+      this.triggerMusicUIUpdate();
     }
   }
 
   setMusicVolume(volume) {
     this.musicVolume = volume;
+    localStorage.setItem("m3-music-volume", Math.round(volume * 100));
+    this.applyMusicVolume();
+    this.triggerMusicUIUpdate();
+  }
+
+  applyMusicVolume() {
+    const effective = this.musicMuted ? 0 : this.musicVolume;
     if (this.gainNode) {
-      this.gainNode.gain.value = volume;
+      this.gainNode.gain.value = effective;
     } else {
-      this.audioElement.volume = volume;
+      this.audioElement.volume = effective;
     }
+  }
+
+  toggleMusicMute() {
+    this.musicMuted = !this.musicMuted;
+    localStorage.setItem("m3-music-muted", this.musicMuted ? "true" : "false");
+    this.applyMusicVolume();
+    this.triggerMusicUIUpdate();
+  }
+
+  musicRewind() {
+    this.audioElement.currentTime = Math.max(0, this.audioElement.currentTime - 10);
+    this.triggerMusicUIUpdate();
+  }
+
+  musicFastForward() {
+    if (this.audioElement.duration) {
+      this.audioElement.currentTime = Math.min(this.audioElement.duration, this.audioElement.currentTime + 10);
+    }
+    this.triggerMusicUIUpdate();
+  }
+
+  musicSeekToPercent(percent) {
+    if (this.audioElement.duration) {
+      this.audioElement.currentTime = (percent / 100) * this.audioElement.duration;
+    }
+    this.triggerMusicUIUpdate();
+  }
+
+  prevTrack() {
+    if (this.musicQueue.length === 0) return;
+    let idx = this.musicQueueIndex - 1;
+    if (idx < 0) idx = this.musicQueue.length - 1;
+    this.musicQueueIndex = idx;
+    this.playOfflineTrack(this.musicQueue[idx]);
+  }
+
+  nextTrack() {
+    if (this.musicQueue.length === 0) return;
+    let idx = this.musicQueueIndex + 1;
+    if (idx >= this.musicQueue.length) idx = 0;
+    this.musicQueueIndex = idx;
+    this.playOfflineTrack(this.musicQueue[idx]);
+  }
+
+  toggleMusicShuffle() {
+    this.musicShuffle = !this.musicShuffle;
+    if (this.musicShuffle) {
+      const currentId = this.musicQueue[this.musicQueueIndex];
+      const others = this.musicQueue.filter((_, i) => i !== this.musicQueueIndex);
+      // Fisher-Yates shuffle others
+      for (let i = others.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [others[i], others[j]] = [others[j], others[i]];
+      }
+      this.musicQueue = currentId ? [currentId, ...others] : [...others];
+      this.musicQueueIndex = 0;
+    } else {
+      // Restore original order from cache
+      this.musicQueue = this.tracksListCache.map(t => t.id);
+      if (this.currentTrackId) {
+        const idx = this.musicQueue.indexOf(this.currentTrackId);
+        this.musicQueueIndex = idx >= 0 ? idx : 0;
+      }
+    }
+    this.triggerMusicUIUpdate();
+  }
+
+  setMusicQueueOrder(newOrderIds) {
+    this.musicQueue = newOrderIds;
+    if (this.currentTrackId) {
+      const idx = this.musicQueue.indexOf(this.currentTrackId);
+      this.musicQueueIndex = idx >= 0 ? idx : 0;
+    } else {
+      this.musicQueueIndex = 0;
+    }
+    this.triggerMusicUIUpdate();
+  }
+
+  handleMusicTimeUpdate() {
+    this.musicProgress = this.audioElement.currentTime || 0;
+    this.musicDuration = this.audioElement.duration || 0;
+    this.triggerMusicUIUpdate();
+  }
+
+  handleMusicEnded() {
+    this.nextTrack();
+  }
+
+  isMusicPlaying() {
+    return this.audioElement && !this.audioElement.paused && !this.audioElement.ended;
   }
 
   // ==========================================
@@ -581,6 +734,12 @@ class BrainrotEngine {
   triggerUIUpdate() {
     if (this.onUIUpdate) {
       this.onUIUpdate();
+    }
+  }
+
+  triggerMusicUIUpdate() {
+    if (this.onMusicUpdate) {
+      this.onMusicUpdate();
     }
   }
 }

@@ -366,21 +366,19 @@
 
     /* Extended FAB Modifier */
     .m3-fab.extended {
-      width: auto;                  /* Overrides the fixed 56px width */
-      padding: 0 20px;              /* Standard M3 padding for extended FABs */
-      gap: 12px;                    /* Space between icon and text */
+      width: auto;
+      padding: 0 20px;
+      gap: 12px;
     }
 
-    /* Ensure the label looks correct */
     .m3-fab.extended span {
       font-family: var(--md-sys-typescale-label-large-font, inherit);
       font-size: 14px;
       font-weight: 500;
-      white-space: nowrap;          /* Prevents text wrapping */
+      white-space: nowrap;
       letter-spacing: 0.1px;
     }
 
-    /* Icon adjustment to prevent squishing */
     .m3-fab.extended svg {
       width: 24px;
       height: 24px;
@@ -573,76 +571,116 @@
     
     /* Controls Section */
     .controls-panel {
-      padding: 16px 0;
+      padding: 12px 0;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
     }
     
-    .play-deck-container {
-      position: relative;
-      width: 100%;
+    .stats-row {
       display: flex;
-      flex-direction: column;
-      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0.85;
+      padding: 0 2px;
     }
-
-    .play-row {
+    
+    .progress-bar-row {
+      width: 100%;
+    }
+    
+    .progress-bar-row .m3-slider {
+      margin: 4px 0;
+    }
+    
+    .text-controls-row {
       display: flex;
       justify-content: center;
       align-items: center;
       gap: 16px;
       width: 100%;
+      padding: 4px 0;
+    }
+    
+    .text-controls-row .m3-fab {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+    }
+    
+    .text-controls-row .m3-fab.large {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
     }
 
-    /* Small mobile screens (under 480px width) */
-    @media (max-width: 479px) {
-      .play-badges-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        margin-top: 4px;
-      }
-      
-      .player-deck-badge {
-        position: static !important;
-        transform: none !important;
-        font-size: 13px;
-        font-weight: 500;
-      }
-      
-      #chapter-nav-display {
-        color: var(--md-sys-color-primary);
-      }
+    .text-controls-row .m3-fab svg {
+      width: 24px;
+      height: 24px;
     }
-
-    /* Large tablet/desktop screens (480px width and up) */
-    @media (min-width: 480px) {
-      .play-badges-row {
-        display: block;
-      }
-
-      .player-deck-badge {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 10;
-        font-size: 13px;
-        font-weight: 500;
-      }
-      
-      .left-wing {
-        left: 0;
-      }
-      
-      .right-wing {
-        right: 0;
-      }
-      
-      #chapter-nav-display {
-        color: var(--md-sys-color-primary);
-      }
+    
+    .text-controls-row .m3-fab.large svg {
+      width: 28px;
+      height: 28px;
+    }
+    
+    .media-controls-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 4px 0;
+    }
+    
+    .music-pill {
+      flex: 0 1 auto;
+      min-width: 0;
+      max-width: 42%;
+      height: 36px;
+      border-radius: 18px;
+      padding: 0 14px;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      justify-content: flex-start;
+    }
+    
+    .music-pill svg {
+      flex-shrink: 0;
+    }
+    
+    .mute-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 18px;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    
+    .volume-mini-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1 1 auto;
+      min-width: 80px;
+      max-width: 200px;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--md-sys-color-outline-variant);
+      outline: none;
+    }
+    
+    .volume-mini-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--md-sys-color-primary);
+      cursor: pointer;
     }
     
     .speed-bubble {
@@ -654,6 +692,10 @@
       font-size: 13px;
       cursor: pointer;
       transition: background-color 0.2s ease;
+      flex-shrink: 0;
+      border: none;
+      font-family: inherit;
+      margin-left: auto;
     }
     .speed-bubble:active {
       background-color: var(--md-sys-color-primary-container);
@@ -879,6 +921,133 @@
       background-color: rgba(255, 255, 255, 0.2);
       color: #ffffff;
     }
+
+    /* Music queue drag items */
+    .music-queue-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background-color: var(--md-sys-color-surface-variant);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      margin-bottom: 6px;
+      cursor: grab;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+    
+    .music-queue-item.dragging {
+      opacity: 0.5;
+      transform: scale(1.02);
+    }
+    
+    .music-queue-item.active {
+      border-color: var(--md-sys-color-primary);
+    }
+    
+    .drag-handle {
+      color: var(--md-sys-color-on-surface-variant);
+      cursor: grab;
+    }
+    
+    .music-sheet-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      margin: 12px 0;
+    }
+    
+    .music-sheet-controls .m3-fab {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+    }
+    
+    /* Mini TTS Player - Persistent across tabs */
+    .mini-tts-player {
+      display: none;
+      height: 60px;
+      background-color: var(--md-sys-color-surface-container-high);
+      border-bottom: 1px solid var(--md-sys-color-outline-variant);
+      padding: 0 12px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      z-index: 9;
+      animation: slideDown 0.2s ease-out;
+    }
+    
+    .mini-tts-player.active {
+      display: flex;
+    }
+    
+    @keyframes slideDown {
+      from {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    .mini-player-left {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      min-width: 44px;
+    }
+    
+    .mini-player-left .m3-fab {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+    }
+    
+    .mini-player-center {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--md-sys-color-primary);
+      font-family: 'Outfit', sans-serif;
+      letter-spacing: 2px;
+    }
+    
+    .mini-player-center .orp-prefix,
+    .mini-player-center .orp-suffix {
+      font-size: 20px;
+      font-weight: 400;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+    
+    .mini-player-center .orp-char {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--md-sys-color-primary);
+    }
+    
+    .mini-player-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      min-width: 44px;
+    }
+    
+    .mini-player-right .m3-fab {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+    }
+    
+    body.immersive-mode .mini-tts-player {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
@@ -897,6 +1066,23 @@
       </button>
     </div>
   </header>
+
+  <!-- Mini TTS Player - Persistent across tabs -->
+  <div class="mini-tts-player" id="mini-tts-player">
+    <div class="mini-player-left">
+      <button class="m3-fab" id="mini-player-play-pause" title="Play/Pause" style="background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container);">
+        <svg class="icon-m3" viewBox="0 -960 960 960" id="mini-player-play-icon"><path d="M360-360v240h80v-240h-80Zm160-80v320h80v-320h-80Z" fill="currentColor"/></svg>
+      </button>
+    </div>
+    <div class="mini-player-center">
+      <span class="orp-prefix" id="mini-orp-prefix"></span><span class="orp-char" id="mini-orp-char">a</span><span class="orp-suffix" id="mini-orp-suffix"></span>
+    </div>
+    <div class="mini-player-right">
+      <button class="m3-fab" id="mini-player-mute" title="Mute TTS" style="background-color: transparent; border: 1px solid var(--md-sys-color-outline); color: var(--md-sys-color-on-surface-variant);">
+        <svg class="icon-m3" viewBox="0 -960 960 960" id="mini-player-mute-icon"><path d="M560-131v-68q104-28 172-113t68-188q0-105-68-190T560-803v-68q130 31 215 133t85 231q0 132-85 234T560-131ZM120-360v-240h160l200-200v640L280-360H120Zm420 48v-337q57 28 88.5 82.5T660-480q0 56-31.5 110.5T540-312Z" fill="currentColor"/></svg>
+      </button>
+    </div>
+  </div>
 
   <!-- Floating exit focus mode button -->
   <button class="exit-immersive-btn" id="exit-focus-mode-btn" title="Exit Focus Mode">
@@ -934,58 +1120,66 @@
       
       <!-- Timing Slider & Chapter Navigator UI -->
       <div class="controls-panel">
-        <!-- Word count & seek percentage bar -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: -4px;">
-          <span style="font-size: 13px; font-weight: 500; opacity: 0.8;" id="word-count-display">Word 0 of 0</span>
-          <span style="font-size: 12px; opacity: 0.7;" id="seek-percentage-display">0%</span>
+        <!-- Row 1: Progress statistics -->
+        <div class="stats-row">
+          <span id="word-count-display">Word 0 of 0</span>
+          <span id="chapter-nav-display" style="color: var(--md-sys-color-primary);">Chapter -- of --</span>
+          <span id="seek-percentage-display">0%</span>
         </div>
         
-        <!-- RSVP Timeline Seek Slider -->
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 12px; opacity: 0.7;" id="seek-time-start">0%</span>
+        <!-- Row 2: Primary progress bar -->
+        <div class="progress-bar-row">
           <input type="range" class="m3-slider" id="reader-seek-bar" min="0" max="100" value="0">
-          <span style="font-size: 12px; opacity: 0.7;" id="seek-time-end">100%</span>
         </div>
 
-        <!-- Symmetrical S-Deck Responsive Player controls -->
-        <div class="play-deck-container">
-          <div class="play-row">
-            <!-- Prev Chapter -->
-            <button class="m3-fab" id="prev-chapter-btn" style="width: 44px; height: 44px; border-radius: 12px; background-color: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container);" title="Previous Chapter">
-              <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M220-240v-480h80v480h-80Zm520 0L380-480l360-240v480Z"/></svg>
-            </button>
-            
-            <!-- Rewind 10 words (Circular arrow) -->
-            <button class="m3-fab" id="rewind-btn" style="width: 44px; height: 44px; border-radius: 12px;" title="Rewind 10 words">
-              <svg class="icon-m3" viewBox="0 0 24 24">
-                <path d="M12 5V1L7 6l5 5V7c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6H4c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8zm-1.1 11H10v-3.3L9 13v-.7h1.9v4.2zm2.6-1.5c0 .5-.1.9-.3 1.1-.2.3-.5.4-.9.4s-.7-.1-.9-.4c-.2-.2-.3-.6-.3-1.1v-1.3c0-.5.1-.9.3-1.1.2-.3.5-.4.9-.4s.7.1.9.4c.2.2.3.6.3 1.1v1.3zm-.8-1.4c0-.3 0-.6-.1-.7s-.2-.2-.3-.2-.2.1-.3.2-.1.4-.1.7v1.5c0 .3 0 .5.1.7s.2.2.3.2.2-.1.3-.2.1-.4.1-.7v-1.5z" fill="currentColor"/>
-              </svg>
-            </button>
-            
-            <!-- Play Pause -->
-            <button class="m3-fab large" id="play-pause-btn" style="width: 64px; height: 64px; border-radius: 20px;">
-              <svg class="icon-m3" id="play-icon" viewBox="0 -960 960 960"><path d="M320-203v-554l440 277-440 277Z"/></svg>
-              <svg class="icon-m3" id="pause-icon" viewBox="0 -960 960 960" style="display: none;"><path d="M560-200v-560h160v560H560Zm-320 0v-560h160v560H240Z"/></svg>
-            </button>
-            
-            <!-- Fast Forward 10 words (Circular arrow) -->
-            <button class="m3-fab" id="ff-btn" style="width: 44px; height: 44px; border-radius: 12px;" title="Forward 10 words">
-              <svg class="icon-m3" viewBox="0 0 24 24">
-                <path d="M12 5V1l5 5-5 5V7c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6h2c0 4.4-3.6 8-8 8s-8-3.6-8-8 3.6-8 8-8zm1.9 11h-1v-4.2h-1.9v-.7L12.9 11h1v5zm2.6-1.5c0 .5-.1.9-.3 1.1-.2.3-.5.4-.9.4s-.7-.1-.9-.4c-.2-.2-.3-.6-.3-1.1v-1.3c0-.5.1-.9.3-1.1.2-.3.5-.4.9-.4s.7.1.9.4c.2.2.3.6.3 1.1v1.3zm-.8-1.4c0-.3 0-.6-.1-.7s-.2-.2-.3-.2-.2.1-.3.2-.1.4-.1.7v1.5c0 .3 0 .5.1.7s.2.2.3.2.2-.1.3-.2.1-.4.1-.7v-1.5z" fill="currentColor"/>
-              </svg>
-            </button>
-            
-            <!-- Next Chapter -->
-            <button class="m3-fab" id="next-chapter-btn" style="width: 44px; height: 44px; border-radius: 12px; background-color: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container);" title="Next Chapter">
-              <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M660-240v-480h80v480h-80Zm-440 0 360-240-360-240v480Z"/></svg>
-            </button>
-          </div>
+        <!-- Row 3: Text/TTS controls -->
+        <div class="text-controls-row">
+          <!-- Prev Chapter -->
+          <button class="m3-fab" id="prev-chapter-btn" style="background-color: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container);" title="Previous Chapter">
+            <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M220-240v-480h80v480h-80Zm520 0L380-480l360-240v480Z"/></svg>
+          </button>
           
-          <!-- Symmetrical info badges wrapper -->
-          <div class="play-badges-row">
-            <span class="player-deck-badge left-wing" id="chapter-nav-display">Chapter -- of --</span>
-            <span class="speed-bubble player-deck-badge right-wing" id="wpm-display" title="Adjust WPM">250 WPM</span>
-          </div>
+          <!-- Rewind 10 words -->
+          <button class="m3-fab" id="rewind-btn" title="Rewind 10 words">
+            <svg class="icon-m3" viewBox="0 0 24 24">
+              <path d="M12 5V1L7 6l5 5V7c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6H4c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8zm-1.1 11H10v-3.3L9 13v-.7h1.9v4.2zm2.6-1.5c0 .5-.1.9-.3 1.1-.2.3-.5.4-.9.4s-.7-.1-.9-.4c-.2-.2-.3-.6-.3-1.1v-1.3c0-.5.1-.9.3-1.1.2-.3.5-.4.9-.4s.7.1.9.4c.2.2.3.6.3 1.1v1.3zm-.8-1.4c0-.3 0-.6-.1-.7s-.2-.2-.3-.2-.2.1-.3.2-.1.4-.1.7v1.5c0 .3 0 .5.1.7s.2.2.3.2.2-.1.3-.2.1-.4.1-.7v-1.5z" fill="currentColor"/>
+            </svg>
+          </button>
+          
+          <!-- Play / Pause -->
+          <button class="m3-fab large" id="play-pause-btn">
+            <svg class="icon-m3" id="play-icon" viewBox="0 -960 960 960"><path d="M320-203v-554l440 277-440 277Z"/></svg>
+            <svg class="icon-m3" id="pause-icon" viewBox="0 -960 960 960" style="display: none;"><path d="M560-200v-560h160v560H560Zm-320 0v-560h160v560H240Z"/></svg>
+          </button>
+          
+          <!-- Fast Forward 10 words -->
+          <button class="m3-fab" id="ff-btn" title="Forward 10 words">
+            <svg class="icon-m3" viewBox="0 0 24 24">
+              <path d="M12 5V1l5 5-5 5V7c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6h2c0 4.4-3.6 8-8 8s-8-3.6-8-8 3.6-8 8-8zm1.9 11h-1v-4.2h-1.9v-.7L12.9 11h1v5zm2.6-1.5c0 .5-.1.9-.3 1.1-.2.3-.5.4-.9.4s-.7-.1-.9-.4c-.2-.2-.3-.6-.3-1.1v-1.3c0-.5.1-.9.3-1.1.2-.3.5-.4.9-.4s.7.1.9.4c.2.2.3.6.3 1.1v1.3zm-.8-1.4c0-.3 0-.6-.1-.7s-.2-.2-.3-.2-.2.1-.3.2-.1.4-.1.7v1.5c0 .3 0 .5.1.7s.2.2.3.2.2-.1.3-.2.1-.4.1-.7v-1.5z" fill="currentColor"/>
+            </svg>
+          </button>
+          
+          <!-- Next Chapter -->
+          <button class="m3-fab" id="next-chapter-btn" style="background-color: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container);" title="Next Chapter">
+            <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M660-240v-480h80v480h-80Zm-440 0 360-240-360-240v480Z"/></svg>
+          </button>
+        </div>
+        
+        <!-- Row 4: Music pill + volume + WPM -->
+        <div class="media-controls-row">
+          <button class="m3-btn tonal music-pill" id="music-pill-btn" title="Open Music Player">
+            <svg class="icon-m3" viewBox="0 -960 960 960" style="width:18px;height:18px;"><path d="M400-120q-66 0-113-47t-47-113q0-66 47-113t113-47q23 0 42.5 5.5T480-418v-422h240v160H560v520q0 66-47 113t-113 47Zm0-80q33 0 56.5-23.5T480-280v-54h-80q-33 0-56.5 23.5T320-254q0 33 23.5 56.5T400-200Zm0-80Z"/></svg>
+            <span id="music-pill-text">No music</span>
+          </button>
+          
+          <button class="m3-btn tonal mute-btn" id="music-mute-btn" title="Mute/Unmute">
+            <svg class="icon-m3" id="speaker-on-icon" viewBox="0 -960 960 960"><path d="M560-131v-68q104-28 172-113t68-188q0-105-68-190T560-803v-68q130 31 215 133t85 231q0 132-85 234T560-131ZM120-360v-240h160l200-200v640L280-360H120Zm420 48v-337q57 28 88.5 82.5T660-480q0 56-31.5 110.5T540-312Z"/></svg>
+            <svg class="icon-m3" id="speaker-off-icon" viewBox="0 -960 960 960" style="display:none;"><path d="M792-56 671-177q-26 23-57 39.5T551-113v-68q19-8 36-20.5t31-27.5L288-480v260L120-360v-240h62L56-792l56-56 736 736-56 56ZM680-485l-60-60q18-33 18-70t-18-70l60-60q30 42 30 90t-30 90ZM560-120 400-280l-56 56v62l200 200v-158Zm-80-520v-160l-90 90 90 70Zm-54 327Zm126-183Z"/></svg>
+          </button>
+          
+          <input type="range" class="volume-mini-slider" id="reader-music-volume" min="0" max="100" value="50">
+          
+          <button class="speed-bubble" id="wpm-display" title="Adjust WPM">250 WPM</button>
         </div>
       </div>
     </section>
@@ -1003,15 +1197,7 @@
       </div>
       
       <!-- FAB Upload button wrapper -->
-      <!-- <div class="file-input-wrapper fab-bottom-right">
-        <button class="m3-fab" style="background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary);">
-          <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
-        </button>
-        <input type="file" id="epub-file-uploader" accept=".epub">
-      </div> -->
-
       <div class="file-input-wrapper fab-bottom-right">
-        <!-- Added the "extended" class here -->
         <button class="m3-fab extended" style="background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary);">
           <svg class="icon-m3" viewBox="0 -960 960 960">
             <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/>
@@ -1034,16 +1220,7 @@
       </div>
       
       <!-- FAB Add Audio button wrapper -->
-      <!-- <div class="file-input-wrapper fab-bottom-right">
-        <button class="m3-fab" style="background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary);">
-          <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
-          Add Audio
-        </button>
-        <input type="file" id="music-file-uploader" accept=".mp3">
-      </div> -->
-
       <div class="file-input-wrapper fab-bottom-right">
-        <!-- Added the "extended" class here -->
         <button class="m3-fab extended" style="background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary);">
           <svg class="icon-m3" viewBox="0 -960 960 960">
             <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/>
@@ -1090,6 +1267,74 @@
       <button class="m3-btn tonal" id="dup-rename-btn">Rename</button>
       <button class="m3-btn outlined" id="dup-cancel-btn">Cancel</button>
     </div>
+  </div>
+
+  <!-- Duplicate Audio Resolution Bottom Sheet -->
+  <div class="sheet-overlay" id="dup-audio-overlay"></div>
+  <div class="bottom-sheet" id="dup-audio-bottom-sheet" style="z-index: 30;">
+    <div class="bottom-sheet-handle"></div>
+    <h3 style="font-size: 20px; font-weight: 500; margin-bottom: 16px;">Track Already Exists</h3>
+    <p style="margin-bottom: 20px; opacity: 0.8; font-size: 14px;">A track named "<span id="dup-audio-name"></span>" already exists in your library.</p>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <button class="m3-btn filled" id="dup-audio-replace-btn">Replace</button>
+      <button class="m3-btn tonal" id="dup-audio-rename-btn">Rename</button>
+      <button class="m3-btn outlined" id="dup-audio-cancel-btn">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Music Player Bottom Sheet -->
+  <div class="sheet-overlay" id="music-sheet-overlay"></div>
+  <div class="bottom-sheet" id="music-bottom-sheet" style="z-index: 25;">
+    <div class="bottom-sheet-handle"></div>
+    <h3 style="font-size: 20px; font-weight: 500; margin-bottom: 4px;">Music Player</h3>
+    <p style="font-size: 14px; opacity: 0.8; margin-bottom: 12px;" id="music-sheet-track-title">No track selected</p>
+    
+    <!-- Music progress -->
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+      <span style="font-size: 11px; opacity: 0.7; min-width: 36px; text-align: right;" id="music-current-time">0:00</span>
+      <input type="range" class="m3-slider" id="music-seek-bar" min="0" max="100" value="0">
+      <span style="font-size: 11px; opacity: 0.7; min-width: 36px;" id="music-total-time">0:00</span>
+    </div>
+    
+    <!-- Music controls -->
+    <div class="music-sheet-controls">
+      <button class="m3-fab" id="music-prev-btn" title="Previous">
+        <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M220-240v-480h80v480h-80Zm520 0L380-480l360-240v480Z"/></svg>
+      </button>
+      <button class="m3-fab" id="music-rewind-btn" title="Back 10s">
+        <svg class="icon-m3" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6H4c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8z" fill="currentColor"/></svg>
+      </button>
+      <button class="m3-fab large" id="music-play-pause-btn" style="width: 56px; height: 56px; border-radius: 16px;">
+        <svg class="icon-m3" id="music-play-icon" viewBox="0 -960 960 960"><path d="M320-203v-554l440 277-440 277Z"/></svg>
+        <svg class="icon-m3" id="music-pause-icon" viewBox="0 -960 960 960" style="display: none;"><path d="M560-200v-560h160v560H560Zm-320 0v-560h160v560H240Z"/></svg>
+      </button>
+      <button class="m3-fab" id="music-ff-btn" title="Forward 10s">
+        <svg class="icon-m3" viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6h2c0 4.4-3.6 8-8 8s-8-3.6-8-8 3.6-8 8-8z" fill="currentColor"/></svg>
+      </button>
+      <button class="m3-fab" id="music-next-btn" title="Next">
+        <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M660-240v-480h80v480h-80Zm-440 0 360-240-360-240v480Z"/></svg>
+      </button>
+      <button class="m3-fab" id="music-shuffle-btn" title="Shuffle" style="background-color: transparent; border: 1px solid var(--md-sys-color-outline); color: var(--md-sys-color-on-surface-variant);">
+        <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M560-160v-80h144L518-426l57-57 185 185v-142h80v280H560Zm-326-14L80-328l56-56 154 154 56-56-154-154 56-56 210 210-58 58-56-56-144 144Zm284-252-57-57 185-185H600v-80h280v280h-80v-142L602-514Z" fill="currentColor"></path></svg>
+      </button>
+    </div>
+
+    <!-- Volume slider -->
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+      <svg class="icon-m3" id="music-sheet-speaker-on" viewBox="0 -960 960 960" style="width:20px;height:20px;flex-shrink:0;"><path d="M560-131v-68q104-28 172-113t68-188q0-105-68-190T560-803v-68q130 31 215 133t85 231q0 132-85 234T560-131ZM120-360v-240h160l200-200v640L280-360H120Zm420 48v-337q57 28 88.5 82.5T660-480q0 56-31.5 110.5T540-312Z"/></svg>
+      <svg class="icon-m3" id="music-sheet-speaker-off" viewBox="0 -960 960 960" style="width:20px;height:20px;flex-shrink:0;display:none;"><path d="M792-56 671-177q-26 23-57 39.5T551-113v-68q19-8 36-20.5t31-27.5L288-480v260L120-360v-240h62L56-792l56-56 736 736-56 56ZM680-485l-60-60q18-33 18-70t-18-70l60-60q30 42 30 90t-30 90ZM560-120 400-280l-56 56v62l200 200v-158Zm-80-520v-160l-90 90 90 70Zm-54 327Zm126-183Z"/></svg>
+      <input type="range" class="m3-slider" id="music-sheet-volume" min="0" max="100" value="50">
+      <span style="font-size: 12px; min-width: 32px; text-align: right;" id="music-sheet-volume-label">50%</span>
+    </div>
+    
+    <!-- Queue list -->
+    <h4 style="font-size: 14px; font-weight: 500; color: var(--md-sys-color-primary); margin-bottom: 8px;">Queue</h4>
+    <p style="font-size: 11px; opacity: 0.6; margin-bottom: 8px;">Drag items to reorder playback.</p>
+    <div id="music-queue-list" style="max-height: 240px; overflow-y: auto;">
+      <!-- Rendered dynamically -->
+    </div>
+    
+    <button class="m3-btn tonal" id="close-music-sheet-btn" style="width: 100%; margin-top: 16px;">Close</button>
   </div>
 
   <!-- Material 3 Bottom Sheet Dialog (Settings / Customizations) -->
@@ -1264,9 +1509,29 @@
       const epubUploader = document.getElementById("epub-file-uploader");
       const musicUploader = document.getElementById("music-file-uploader");
       const autoPlayToggle = document.getElementById("auto-play-chapter-toggle");
+      const musicPillBtn = document.getElementById("music-pill-btn");
+      const musicMuteBtn = document.getElementById("music-mute-btn");
+      const readerMusicVolume = document.getElementById("reader-music-volume");
+      const musicSheet = document.getElementById("music-bottom-sheet");
+      const musicSheetOverlay = document.getElementById("music-sheet-overlay");
+      const musicPlayPauseBtn = document.getElementById("music-play-pause-btn");
+      const musicPrevBtn = document.getElementById("music-prev-btn");
+      const musicNextBtn = document.getElementById("music-next-btn");
+      const musicRewindBtn = document.getElementById("music-rewind-btn");
+      const musicFfBtn = document.getElementById("music-ff-btn");
+      const musicSeekBar = document.getElementById("music-seek-bar");
+      const musicShuffleBtn = document.getElementById("music-shuffle-btn");
+      const musicSheetVolume = document.getElementById("music-sheet-volume");
+      const musicSheetVolumeLabel = document.getElementById("music-sheet-volume-label");
+      const musicSheetSpeakerOn = document.getElementById("music-sheet-speaker-on");
+      const musicSheetSpeakerOff = document.getElementById("music-sheet-speaker-off");
+      const closeMusicSheetBtn = document.getElementById("close-music-sheet-btn");
 
       // Hook engine event bridges
-      engine.onUIUpdate = () => updateReaderDisplay();
+      engine.onUIUpdate = () => {
+        updateReaderDisplay();
+        updateMiniPlayerDisplay();
+      };
       engine.onChapterFinished = async () => {
         // Auto-advance to next chapter if available and auto-play
         if (engine.currentChapterIdx + 1 < engine.chapters.length) {
@@ -1276,6 +1541,7 @@
           document.getElementById('pause-icon').style.display = 'none';
         }
       };
+      engine.onMusicUpdate = () => updateMusicUI();
       
       // Screen switching navigation
       navDestinations.forEach(dest => {
@@ -1286,6 +1552,9 @@
           const target = dest.getAttribute("data-target");
           screens.forEach(s => s.classList.remove("active"));
           document.getElementById(target).classList.add("active");
+          
+          // Update mini player display on tab switch
+          updateMiniPlayerDisplay();
         });
       });
 
@@ -1303,6 +1572,22 @@
       document.getElementById("settings-trigger-btn").addEventListener("click", openSettings);
       document.getElementById("close-settings-btn").addEventListener("click", closeSettings);
       sheetOverlay.addEventListener("click", closeSettings);
+
+      // Music sheet triggers
+      function openMusicSheet() {
+        musicSheet.classList.add("open");
+        musicSheetOverlay.classList.add("active");
+        renderMusicQueue();
+      }
+      
+      function closeMusicSheet() {
+        musicSheet.classList.remove("open");
+        musicSheetOverlay.classList.remove("active");
+      }
+
+      musicPillBtn.addEventListener("click", openMusicSheet);
+      closeMusicSheetBtn.addEventListener("click", closeMusicSheet);
+      musicSheetOverlay.addEventListener("click", closeMusicSheet);
 
       // Clear all reader state when no book is selected or book was deleted
       function clearReaderState() {
@@ -1569,6 +1854,20 @@
         const val = parseInt(e.target.value);
         volumeDisplay.textContent = `${val}%`;
         engine.setMusicVolume(val / 100);
+        readerMusicVolume.value = val;
+      });
+
+      // Inline reader music volume slider
+      readerMusicVolume.addEventListener("input", (e) => {
+        const val = parseInt(e.target.value);
+        engine.setMusicVolume(val / 100);
+        volumeSlider.value = val;
+        volumeDisplay.textContent = `${val}%`;
+      });
+
+      // Music mute toggle
+      musicMuteBtn.addEventListener("click", () => {
+        engine.toggleMusicMute();
       });
 
       // TTS Speech toggle settings
@@ -1625,6 +1924,59 @@
         if (engine.chapters.length > 0 && engine.currentChapterIdx + 1 < engine.chapters.length) {
           await loadNewChapter(engine.currentChapterIdx + 1, true);
         }
+      });
+
+      // Music sheet controls
+      musicPlayPauseBtn.addEventListener("click", () => {
+        if (engine.isMusicPlaying()) {
+          engine.pauseOfflineTrack();
+        } else {
+          if (engine.currentTrackId) {
+            engine.resumeOfflineTrack();
+          } else if (engine.musicQueue.length > 0) {
+            engine.playOfflineTrack(engine.musicQueue[0]);
+          }
+        }
+      });
+
+      musicPrevBtn.addEventListener("click", () => engine.prevTrack());
+      musicNextBtn.addEventListener("click", () => engine.nextTrack());
+      musicRewindBtn.addEventListener("click", () => engine.musicRewind());
+      musicFfBtn.addEventListener("click", () => engine.musicFastForward());
+
+      musicSeekBar.addEventListener("input", (e) => {
+        engine.musicSeekToPercent(parseFloat(e.target.value));
+      });
+
+      musicShuffleBtn.addEventListener("click", () => {
+        engine.toggleMusicShuffle();
+      });
+
+      // Mini TTS Player controls
+      document.getElementById("mini-player-play-pause").addEventListener("click", () => {
+        if (engine.isPlaying) {
+          engine.pause();
+        } else {
+          engine.play();
+        }
+      });
+
+      document.getElementById("mini-player-mute").addEventListener("click", () => {
+        engine.useTTS = !engine.useTTS;
+        updateMiniPlayerDisplay();
+        if (engine.isPlaying) {
+          engine.pause();
+          engine.play();
+        }
+      });
+
+      musicSheetVolume.addEventListener("input", (e) => {
+        const val = parseInt(e.target.value);
+        engine.setMusicVolume(val / 100);
+        volumeSlider.value = val;
+        volumeDisplay.textContent = `${val}%`;
+        readerMusicVolume.value = val;
+        musicSheetVolumeLabel.textContent = `${val}%`;
       });
 
       // ==========================================
@@ -1714,14 +2066,65 @@
         }
       });
 
-      // Music Audio Uploader
+      // Music Audio Uploader with duplicate resolution
       musicUploader.addEventListener("change", async (e) => {
         const file = e.target.files[0];
         if (!file) return;
         
+        let trackTitle = file.name;
+        const exists = await engine.trackExistsByTitle(trackTitle);
+        
+        if (exists) {
+          document.getElementById("dup-audio-name").textContent = trackTitle;
+          const dupSheet = document.getElementById("dup-audio-bottom-sheet");
+          const dupOverlay = document.getElementById("dup-audio-overlay");
+          dupSheet.classList.add("open");
+          dupOverlay.classList.add("active");
+          
+          const choice = await new Promise((resolve) => {
+            const replaceBtn = document.getElementById("dup-audio-replace-btn");
+            const renameBtn = document.getElementById("dup-audio-rename-btn");
+            const cancelBtn = document.getElementById("dup-audio-cancel-btn");
+            
+            const cleanup = () => {
+              dupSheet.classList.remove("open");
+              dupOverlay.classList.remove("active");
+              replaceBtn.onclick = null;
+              renameBtn.onclick = null;
+              cancelBtn.onclick = null;
+            };
+            
+            replaceBtn.onclick = () => { cleanup(); resolve("replace"); };
+            renameBtn.onclick = () => { cleanup(); resolve("rename"); };
+            cancelBtn.onclick = () => { cleanup(); resolve("cancel"); };
+          });
+          
+          if (choice === "cancel") {
+            musicUploader.value = "";
+            return;
+          }
+          
+          if (choice === "rename") {
+            const newName = prompt(`Rename "${trackTitle}" to:`, trackTitle);
+            if (!newName || !newName.trim()) {
+              musicUploader.value = "";
+              return;
+            }
+            trackTitle = newName.trim();
+            const stillExists = await engine.trackExistsByTitle(trackTitle);
+            if (stillExists) {
+              alert("A track with that name already exists. Upload cancelled.");
+              musicUploader.value = "";
+              return;
+            }
+          }
+        }
+        
         try {
           const trackId = 'track-' + Date.now();
-          await engine.saveTrack(trackId, file.name, file);
+          await engine.saveTrack(trackId, trackTitle, file);
+          await engine.refreshTrackCache();
+          engine.buildMusicQueueFromCache();
           musicUploader.value = "";
           refreshMusicUI();
         } catch (err) {
@@ -1810,35 +2213,50 @@
           tracks.forEach(track => {
             const card = document.createElement("div");
             const isActive = engine.currentTrackId === track.id;
+            const isPlaying = isActive && engine.isMusicPlaying();
             
             card.className = "m3-list-item";
             card.style.borderColor = isActive ? "var(--md-sys-color-primary)" : "var(--md-sys-color-outline-variant)";
             
             card.innerHTML = `
-              <div style="display: flex; align-items: center; gap: 12px; flex: 1; cursor: pointer;" class="play-track-trigger">
-                <svg class="icon-m3" style="color: ${isActive ? 'var(--md-sys-color-primary)' : 'inherit'};" viewBox="0 -960 960 960"><path d="M400-280v-400l280 200-280 200Z"/></svg>
-                <div>
+              <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                <svg class="icon-m3" style="color: ${isActive ? 'var(--md-sys-color-primary)' : 'inherit'};" viewBox="0 -960 960 960"><path d="M400-120q-66 0-113-47t-47-113q0-66 47-113t113-47q23 0 42.5 5.5T480-418v-422h240v160H560v520q0 66-47 113t-113 47Zm0-80q33 0 56.5-23.5T480-280v-54h-80q-33 0-56.5 23.5T320-254q0 33 23.5 56.5T400-200Zm0-80Z"/></svg>
+                <div style="flex:1; min-width:0;">
                   <div class="m3-list-item-title" style="color: ${isActive ? 'var(--md-sys-color-primary)' : 'inherit'};">${track.title}</div>
-                  <div class="m3-list-item-subtitle">${isActive ? 'Active & Loop playing' : 'Tap to play background'}</div>
+                  <div class="m3-list-item-subtitle">${isPlaying ? 'Now playing' : (isActive ? 'Paused' : 'Tap to play')}</div>
                 </div>
               </div>
-              <button class="m3-btn outlined delete-track-trigger" data-id="${track.id}" style="height: 32px; padding: 0 12px; border-color: var(--md-sys-color-error); color: var(--md-sys-color-error); border-radius: 8px;">
-                Delete
-              </button>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <button class="m3-btn outlined play-pause-track-trigger" data-id="${track.id}" style="height: 32px; padding: 0 10px; border-radius: 8px;">
+                  ${isPlaying ? 'Pause' : 'Play'}
+                </button>
+                <button class="m3-btn outlined delete-track-trigger" data-id="${track.id}" style="height: 32px; padding: 0 12px; border-color: var(--md-sys-color-error); color: var(--md-sys-color-error); border-radius: 8px;">
+                  Delete
+                </button>
+              </div>
             `;
             
-            card.querySelector(".play-track-trigger").addEventListener("click", () => {
-              engine.playOfflineTrack(track.id);
+            card.querySelector(".play-pause-track-trigger").addEventListener("click", () => {
+              if (engine.currentTrackId === track.id && engine.isMusicPlaying()) {
+                engine.pauseOfflineTrack();
+              } else if (engine.currentTrackId === track.id) {
+                engine.resumeOfflineTrack();
+              } else {
+                engine.playOfflineTrack(track.id);
+              }
               refreshMusicUI();
             });
             
             card.querySelector(".delete-track-trigger").addEventListener("click", async (e) => {
+              e.stopPropagation();
               if (confirm("Delete audio track?")) {
                 await engine.deleteTrack(track.id);
                 if (engine.currentTrackId === track.id) {
                   engine.pauseOfflineTrack();
                   engine.currentTrackId = null;
                 }
+                await engine.refreshTrackCache();
+                engine.buildMusicQueueFromCache();
                 refreshMusicUI();
               }
             });
@@ -1848,6 +2266,161 @@
         } catch (err) {
           console.warn("Failed refreshing music UI:", err);
         }
+      }
+
+      function formatTime(seconds) {
+        if (!isFinite(seconds) || seconds < 0) return "0:00";
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return `${m}:${s.toString().padStart(2, '0')}`;
+      }
+
+      function updateMusicUI() {
+        // Update music pill
+        const pillText = document.getElementById("music-pill-text");
+        const title = engine.currentTrackId ? engine.getTrackTitle(engine.currentTrackId) : "No music";
+        pillText.textContent = title;
+        
+        // Mute icon
+        const speakerOn = document.getElementById("speaker-on-icon");
+        const speakerOff = document.getElementById("speaker-off-icon");
+        if (engine.musicMuted) {
+          speakerOn.style.display = 'none';
+          speakerOff.style.display = 'block';
+        } else {
+          speakerOn.style.display = 'block';
+          speakerOff.style.display = 'none';
+        }
+        
+        // Music sheet
+        const isPlaying = engine.isMusicPlaying();
+        const mPlayIcon = document.getElementById("music-play-icon");
+        const mPauseIcon = document.getElementById("music-pause-icon");
+        if (isPlaying) {
+          mPlayIcon.style.display = 'none';
+          mPauseIcon.style.display = 'block';
+        } else {
+          mPlayIcon.style.display = 'block';
+          mPauseIcon.style.display = 'none';
+        }
+        
+        document.getElementById("music-sheet-track-title").textContent = title;
+        document.getElementById("music-current-time").textContent = formatTime(engine.musicProgress);
+        document.getElementById("music-total-time").textContent = formatTime(engine.musicDuration);
+        
+        if (engine.musicDuration > 0) {
+          const pct = (engine.musicProgress / engine.musicDuration) * 100;
+          musicSeekBar.value = pct;
+        } else {
+          musicSeekBar.value = 0;
+        }
+
+        // Shuffle button state
+        if (engine.musicShuffle) {
+          musicShuffleBtn.style.backgroundColor = 'var(--md-sys-color-primary-container)';
+          musicShuffleBtn.style.color = 'var(--md-sys-color-on-primary-container)';
+          musicShuffleBtn.style.borderColor = 'transparent';
+        } else {
+          musicShuffleBtn.style.backgroundColor = 'transparent';
+          musicShuffleBtn.style.color = 'var(--md-sys-color-on-surface-variant)';
+          musicShuffleBtn.style.borderColor = 'var(--md-sys-color-outline)';
+        }
+
+        // Music sheet volume sync
+        musicSheetVolume.value = Math.round(engine.musicVolume * 100);
+        musicSheetVolumeLabel.textContent = `${Math.round(engine.musicVolume * 100)}%`;
+        if (engine.musicMuted) {
+          musicSheetSpeakerOn.style.display = 'none';
+          musicSheetSpeakerOff.style.display = 'block';
+        } else {
+          musicSheetSpeakerOn.style.display = 'block';
+          musicSheetSpeakerOff.style.display = 'none';
+        }
+
+        // Refresh queue highlights if sheet is open (lightweight, no full rebuild)
+        if (musicSheet.classList.contains('open')) {
+          updateQueueActiveState();
+        }
+      }
+
+      function updateQueueActiveState() {
+        const container = document.getElementById("music-queue-list");
+        if (!container) return;
+        container.querySelectorAll(".music-queue-item").forEach(el => {
+          el.classList.toggle("active", el.dataset.id === engine.currentTrackId);
+        });
+      }
+
+      async function renderMusicQueue() {
+        const container = document.getElementById("music-queue-list");
+        container.innerHTML = "";
+        
+        const tracks = await engine.getTracksList();
+        const queueIds = engine.musicQueue;
+        
+        if (queueIds.length === 0) {
+          container.innerHTML = `<div class="rsvp-placeholder" style="margin-top: 16px;">No tracks in queue.</div>`;
+          return;
+        }
+        
+        queueIds.forEach((id, index) => {
+          const track = tracks.find(t => t.id === id);
+          if (!track) return;
+          const isActive = id === engine.currentTrackId;
+          
+          const item = document.createElement("div");
+          item.className = `music-queue-item ${isActive ? 'active' : ''}`;
+          item.draggable = true;
+          item.dataset.id = id;
+          item.dataset.index = index;
+          
+          item.innerHTML = `
+            <svg class="icon-m3 drag-handle" viewBox="0 -960 960 960" style="width:20px;height:20px;opacity:0.6;"><path d="M360-160q-33 0-56.5-23.5T280-240q0-33 23.5-56.5T360-320q33 0 56.5 23.5T440-240q0 33-23.5 56.5T360-160Zm240 0q-33 0-56.5-23.5T520-240q0-33 23.5-56.5T600-320q33 0 56.5 23.5T680-240q0 33-23.5 56.5T600-160ZM360-400q-33 0-56.5-23.5T280-480q0-33 23.5-56.5T360-560q33 0 56.5 23.5T440-480q0 33-23.5 56.5T360-400Zm240 0q-33 0-56.5-23.5T520-480q0-33 23.5-56.5T600-560q33 0 56.5 23.5T680-480q0 33-23.5 56.5T600-400ZM360-640q-33 0-56.5-23.5T280-720q0-33 23.5-56.5T360-800q33 0 56.5 23.5T440-720q0 33-23.5 56.5T360-640Zm240 0q-33 0-56.5-23.5T520-720q0-33 23.5-56.5T600-800q33 0 56.5 23.5T680-720q0 33-23.5 56.5T600-640Z"/></svg>
+            <div style="flex:1; min-width:0;">
+              <div class="m3-list-item-title" style="font-size:14px;">${track.title}</div>
+            </div>
+            ${isActive ? '<span style="font-size:12px;color:var(--md-sys-color-primary);font-weight:500;">Playing</span>' : ''}
+          `;
+          
+          item.addEventListener("dragstart", (e) => {
+            item.classList.add("dragging");
+            e.dataTransfer.setData("text/plain", index);
+            e.dataTransfer.effectAllowed = "move";
+          });
+          
+          item.addEventListener("dragend", () => {
+            item.classList.remove("dragging");
+            // Rebuild queue from DOM order
+            const newOrder = [];
+            container.querySelectorAll(".music-queue-item").forEach(el => {
+              newOrder.push(el.dataset.id);
+            });
+            engine.setMusicQueueOrder(newOrder);
+            renderMusicQueue();
+          });
+          
+          item.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+            const dragging = container.querySelector(".dragging");
+            if (!dragging || dragging === item) return;
+            const rect = item.getBoundingClientRect();
+            const midpoint = rect.top + rect.height / 2;
+            if (e.clientY < midpoint) {
+              container.insertBefore(dragging, item);
+            } else {
+              container.insertBefore(dragging, item.nextSibling);
+            }
+          });
+          
+          // Tap to play
+          item.addEventListener("click", (e) => {
+            if (e.target.closest(".drag-handle")) return;
+            engine.playOfflineTrack(id);
+          });
+          
+          container.appendChild(item);
+        });
       }
 
       let voiceDetectionRetries = 0;
@@ -1920,6 +2493,7 @@
           localStorage.setItem(`m3-active-chap-${engine.selectedBook}`, chapterIndex);
           
           updateReaderDisplay();
+          updateMiniPlayerDisplay();
 
           // Auto-play next chapter if triggerPlay is requested and setting is active
           if (triggerPlay && engine.autoPlayChapter) {
@@ -1966,6 +2540,53 @@
         }
       }
 
+      // Mini TTS Player update function
+      function updateMiniPlayerDisplay() {
+        const miniPlayer = document.getElementById("mini-tts-player");
+        const miniPlayPauseBtn = document.getElementById("mini-player-play-pause");
+        const miniMuteBtn = document.getElementById("mini-player-mute");
+        const miniPlayIcon = document.getElementById("mini-player-play-icon");
+        const miniMuteIcon = document.getElementById("mini-player-mute-icon");
+        
+        // Show mini player if we have a book loaded and TTS is active or paused
+        if (engine.selectedBook && engine.words.length > 0) {
+          miniPlayer.classList.add("active");
+          
+          // Update the word display
+          const word = engine.words[engine.currentIndex];
+          if (word) {
+            const parts = engine.splitWordForOrp(word);
+            document.getElementById("mini-orp-prefix").textContent = parts.prefix;
+            document.getElementById("mini-orp-char").textContent = parts.char;
+            document.getElementById("mini-orp-suffix").textContent = parts.suffix;
+          }
+          
+          // Update play/pause button icon
+          if (engine.isPlaying) {
+            miniPlayIcon.innerHTML = '<path d="M360-360v240h80v-240h-80Zm160-80v320h80v-320h-80Z" fill="currentColor"/>';
+            miniPlayPauseBtn.title = "Pause";
+          } else {
+            miniPlayIcon.innerHTML = '<path d="M320-200v-560l360 280-360 280Z" fill="currentColor"/>';
+            miniPlayPauseBtn.title = "Play";
+          }
+          
+          // Update mute button styling
+          if (engine.useTTS) {
+            miniMuteBtn.style.backgroundColor = "transparent";
+            miniMuteBtn.style.borderColor = "var(--md-sys-color-outline)";
+            miniMuteBtn.style.color = "var(--md-sys-color-on-surface-variant)";
+            miniMuteIcon.innerHTML = '<path d="M560-131v-68q104-28 172-113t68-188q0-105-68-190T560-803v-68q130 31 215 133t85 231q0 132-85 234T560-131ZM120-360v-240h160l200-200v640L280-360H120Zm420 48v-337q57 28 88.5 82.5T660-480q0 56-31.5 110.5T540-312Z" fill="currentColor"/>';
+          } else {
+            miniMuteBtn.style.backgroundColor = "var(--md-sys-color-error-container)";
+            miniMuteBtn.style.borderColor = "transparent";
+            miniMuteBtn.style.color = "var(--md-sys-color-on-error-container)";
+            miniMuteIcon.innerHTML = '<path d="M792-56 671-177q-26 23-57 39.5T551-113v-68q19-8 36-20.5t31-27.5L288-480v260L120-360v-240h62L56-792l56-56 736 736-56 56ZM680-485l-60-60q18-33 18-70t-18-70l60-60q30 42 30 90t-30 90ZM560-120 400-280l-56 56v62l200 200v-158Zm-80-520v-160l-90 90 90 70Zm-54 327Zm126-183Z" fill="currentColor"/>';
+          }
+        } else {
+          miniPlayer.classList.remove("active");
+        }
+      }
+
       // -------------------------------------------------------------
       // ASYNCHRONOUS INITIALIZATION (Resilient & Non-blocking)
       // -------------------------------------------------------------
@@ -1979,6 +2600,21 @@
           await refreshMusicUI();
           populateVoicesSelector();
           await populateBookSelector();
+
+          // Restore volume/mute settings
+          const savedVol = localStorage.getItem("m3-music-volume");
+          if (savedVol !== null) {
+            const v = parseInt(savedVol);
+            volumeSlider.value = v;
+            readerMusicVolume.value = v;
+            engine.setMusicVolume(v / 100);
+          }
+          const savedMute = localStorage.getItem("m3-music-muted");
+          if (savedMute === "true") {
+            engine.musicMuted = true;
+            engine.applyMusicVolume();
+          }
+          updateMusicUI();
 
           // Hook dynamic voice loading for mobile viewports
           if (window.speechSynthesis) {
