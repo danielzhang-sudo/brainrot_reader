@@ -244,10 +244,22 @@ class BrainrotEngine {
   }
 
   loadVoices() {
-    if (!this.synth) return;
+    if (!this.synth) return [];
     this.availableVoices = this.synth.getVoices();
-    if (this.availableVoices.length > 0 && !this.selectedVoice) {
-      this.selectedVoice = this.availableVoices.find(v => v.default) || this.availableVoices[0];
+    
+    if (this.availableVoices.length > 0) {
+      const savedVoiceName = localStorage.getItem("brainrot_selected_voice");
+      if (savedVoiceName) {
+        const matched = this.availableVoices.find(v => v.name === savedVoiceName);
+        if (matched) {
+          this.selectedVoice = matched;
+          return this.availableVoices;
+        }
+      }
+      
+      if (!this.selectedVoice) {
+        this.selectedVoice = this.availableVoices.find(v => v.default) || this.availableVoices[0];
+      }
     }
     return this.availableVoices;
   }
@@ -331,20 +343,19 @@ class BrainrotEngine {
     } else {
       this.currentIndex = nextIndex;
       this.triggerUIUpdate();
-      // Speak next mobile chunk every 6 words to maintain sync
-      if (nextIndex % 6 === 0) {
-        this.speakMobileChunk(nextIndex);
-      }
     }
   }
 
   speakMobileChunk(startIndex) {
     if (!this.synth) return;
     this.synth.cancel();
-    const chunk = this.words.slice(startIndex, startIndex + 15).join(" ");
-    if (!chunk.trim()) return;
     
-    const utterance = new SpeechSynthesisUtterance(chunk);
+    // Instead of cutting to a tiny 15-word chunk, speak the remaining text in one single, smooth stream!
+    // This completely eliminates skipping, word repetitions, and high-frequency cancels on Samsung and mobile engines.
+    const remainingText = this.words.slice(startIndex).join(" ");
+    if (!remainingText.trim()) return;
+    
+    const utterance = new SpeechSynthesisUtterance(remainingText);
     utterance.rate = this.getCalculatedRate(this.wpm);
     if (this.selectedVoice && this.synth) {
       const freshVoices = this.synth.getVoices();

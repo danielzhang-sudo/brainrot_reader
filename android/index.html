@@ -1350,6 +1350,7 @@
         const voice = engine.availableVoices.find(v => v.name === selectedName);
         if (voice) {
           engine.selectedVoice = voice;
+          localStorage.setItem("brainrot_selected_voice", selectedName);
           if (engine.isPlaying) {
             engine.play();
           }
@@ -1557,22 +1558,31 @@
         });
       }
 
+      let voiceDetectionRetries = 0;
       function populateVoicesSelector() {
-        setTimeout(() => {
-          const voices = engine.loadVoices();
-          if (!voices || voices.length === 0) return;
-          
-          voiceSelector.innerHTML = "";
-          voices.forEach(voice => {
-            const opt = document.createElement("option");
-            opt.value = voice.name;
-            opt.textContent = `${voice.name} (${voice.lang})`;
-            if (engine.selectedVoice && engine.selectedVoice.name === voice.name) {
-              opt.selected = true;
-            }
-            voiceSelector.appendChild(opt);
-          });
-        }, 500); // Small timeout to ensure synthesis voices are fully loaded in Mobile Webviews
+        const voices = engine.loadVoices();
+        if (!voices || voices.length === 0) {
+          if (voiceDetectionRetries < 20) { // Poll for up to 10 seconds total
+            voiceDetectionRetries++;
+            setTimeout(populateVoicesSelector, 500);
+          }
+          return;
+        }
+        
+        // Reset retries once loaded
+        voiceDetectionRetries = 0;
+        
+        voiceSelector.innerHTML = "";
+        voices.forEach(voice => {
+          const opt = document.createElement("option");
+          opt.value = voice.name;
+          const source = voice.localService ? "System" : "Browser";
+          opt.textContent = `[${source}] ${voice.name} (${voice.lang})`;
+          if (engine.selectedVoice && engine.selectedVoice.name === voice.name) {
+            opt.selected = true;
+          }
+          voiceSelector.appendChild(opt);
+        });
       }
 
       async function loadNewChapter(chapterIndex) {
