@@ -2317,13 +2317,13 @@
 
         // Shuffle button state
         if (engine.musicShuffle) {
-          musicShuffleBtn.style.backgroundColor = 'var(--md-sys-color-primary-container)';
-          musicShuffleBtn.style.color = 'var(--md-sys-color-on-primary-container)';
-          musicShuffleBtn.style.borderColor = 'transparent';
-        } else {
           musicShuffleBtn.style.backgroundColor = 'transparent';
           musicShuffleBtn.style.color = 'var(--md-sys-color-on-surface-variant)';
           musicShuffleBtn.style.borderColor = 'var(--md-sys-color-outline)';
+        } else {
+          musicShuffleBtn.style.backgroundColor = 'var(--md-sys-color-primary-container)';
+          musicShuffleBtn.style.color = 'var(--md-sys-color-on-primary-container)';
+          musicShuffleBtn.style.borderColor = 'transparent';
         }
 
         // Music sheet volume sync
