@@ -595,7 +595,7 @@
       margin: 4px 0;
     }
     
-    .text-controls-row {
+    /* .text-controls-row {
       display: flex;
       justify-content: center;
       align-items: center;
@@ -624,65 +624,54 @@
     .text-controls-row .m3-fab.large svg {
       width: 28px;
       height: 28px;
+    } */
+
+    /* --- CONTENEDOR PRINCIPAL FLUIDO --- */
+    .text-controls-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between; /* Distribuye WPM izq, TTS centro, Volumen der */
+      align-items: center;
+      width: 100%;
+      padding: 8px 0;
+      box-sizing: border-box;
     }
-    
-    .media-controls-row {
+
+    /* --- BLOQUES DE CONTENIDO --- */
+
+    /* Bloque Izquierdo (WPM): Se encoge si es necesario, pero empuja al botón hacia la derecha */
+    .control-group-left {
       display: flex;
       align-items: center;
-      gap: 8px;
-      width: 100%;
-      padding: 4px 0;
-    }
-    
-    .music-pill {
-      flex: 0 1 auto;
-      min-width: 0;
-      max-width: 42%;
-      height: 36px;
-      border-radius: 18px;
-      padding: 0 14px;
-      font-size: 13px;
-      font-weight: 500;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
       justify-content: flex-start;
+      flex: 1 1 auto;              /* Ocupa el espacio disponible de forma elástica */
+      min-width: 0;
     }
-    
-    .music-pill svg {
-      flex-shrink: 0;
+
+    /* Bloque Central (TTS): Actúa como una pared de piedra. No se mueve, no encoge, no se deforma */
+    .control-group-center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex: 0 0 auto;              /* Rigidez absoluta */
+      margin: 0 16px;              /* Margen de seguridad para que nadie lo toque */
+      z-index: 2;
     }
-    
-    .mute-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 18px;
-      padding: 0;
-      flex-shrink: 0;
+
+    /* Bloque Derecho (Volumen): Empuja hacia la izquierda buscando el TTS */
+    .control-group-right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex: 1 1 auto;              /* Ocupa el espacio disponible de forma elástica */
+      min-width: 0;
+      gap: 8px;
     }
-    
-    .volume-mini-slider {
-      -webkit-appearance: none;
-      appearance: none;
-      flex: 1 1 auto;
-      min-width: 80px;
-      max-width: 200px;
-      height: 4px;
-      border-radius: 2px;
-      background: var(--md-sys-color-outline-variant);
-      outline: none;
-    }
-    
-    .volume-mini-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: var(--md-sys-color-primary);
-      cursor: pointer;
-    }
-    
+
+    /* --- ELEMENTOS INTERNOS --- */
+
+    /* Botón WPM: Se desplaza de forma natural hacia el centro al reducirse su contenedor */
     .speed-bubble {
       background-color: var(--md-sys-color-secondary-container);
       color: var(--md-sys-color-on-secondary-container);
@@ -695,12 +684,110 @@
       flex-shrink: 0;
       border: none;
       font-family: inherit;
-      margin-right: auto;
       height: 36px;
+      margin-left: 0;             /* Pegado al extremo izquierdo en pantallas anchas */
     }
     .speed-bubble:active {
       background-color: var(--md-sys-color-primary-container);
     }
+
+    /* Ajustes de botones de audio */
+    .mute-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 18px;
+      padding: 0;
+      flex-shrink: 0;
+    }
+
+    .music-pill {
+      flex-shrink: 0;             /* La píldora no se deforma para mantener legible el texto */
+      max-width: 140px;
+      height: 36px;
+      border-radius: 18px;
+      padding: 0 14px;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      justify-content: flex-start;
+    }
+
+    /* --- EL CONTROL DE VOLUMEN (Mecánica de encogimiento prioritario) --- */
+    .volume-mini-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      
+      /* En pantallas gigantes arranca en 100px (no tan largo para evitar invadir espacio) */
+      width: 100px;               
+      flex: 0 1 auto;             /* Permite encogerse pero no estallarse sin control */
+      min-width: 40px;            /* Suelo límite antes de pedir el colapso */
+      
+      height: 4px;
+      border-radius: 2px;
+      background: var(--md-sys-color-outline-variant);
+      outline: none;
+    }
+
+    .volume-mini-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--md-sys-color-primary);
+      cursor: pointer;
+    }
+
+
+    /* ==========================================================================
+      EL COLAPSO MECÁNICO (Sólo cuando el espacio físico real se agota)
+      ========================================================================== */
+    /* Calculado matemáticamente: 
+      WPM (~100px) + TTS (~340px) + Controles Volumen mínimos (~220px) + Margen = ~680px */
+    @media (max-width: 680px) {
+      .text-controls-row {
+        flex-wrap: wrap;
+        justify-content: center;
+        row-gap: 12px;
+      }
+
+      /* El reproductor TTS se adueña de la fila superior */
+      .control-group-center {
+        width: 100%;
+        order: 1;
+        margin: 0 0 4px 0;
+      }
+
+      /* WPM y volumen bajan juntos a la segunda fila, uno al lado del otro */
+      .control-group-left {
+        width: auto;
+        flex: 0 1 auto;
+        order: 2;
+        justify-content: center;
+        margin-right: 16px;
+      }
+
+      .control-group-right {
+        width: auto;
+        flex: 0 1 auto;
+        order: 3;
+        justify-content: center;
+        margin-left: 16px;
+      }
+
+      /* En móviles le devolvemos un tamaño cómodo al slider */
+      .volume-mini-slider {
+        width: 80px;
+      }
+    }
+
+    /* Estilos de botones M3 preservados */
+    .text-controls-row .m3-fab { width: 44px; height: 44px; border-radius: 12px; }
+    .text-controls-row .m3-fab.large { width: 64px; height: 64px; border-radius: 20px; }
+    .text-controls-row .m3-fab svg { width: 24px; height: 24px; }
+    .text-controls-row .m3-fab.large svg { width: 28px; height: 28px; }
     
     /* Bottom Sheet Dialog */
     .bottom-sheet {
@@ -1140,77 +1227,52 @@
           <input type="range" class="m3-slider" id="reader-seek-bar" min="0" max="100" value="0">
         </div>
 
-        <!-- Row 3: Text/TTS controls -->
-        <div class="text-controls-row">
-          <!-- Prev Chapter -->
-          <button class="m3-fab" id="prev-chapter-btn" style="background-color: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container);" title="Previous Chapter">
-            <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M220-240v-480h80v480h-80Zm520 0L380-480l360-240v480Z"/></svg>
-          </button>
-          
-          <!-- Rewind 10 words -->
-          <button class="m3-fab" id="rewind-btn" title="Rewind 10 words">
-            <svg class="icon-m3" viewBox="0 0 24 24">
-              <path d="M12 5V1L7 6l5 5V7c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6H4c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8zm-1.1 11H10v-3.3L9 13v-.7h1.9v4.2zm2.6-1.5c0 .5-.1.9-.3 1.1-.2.3-.5.4-.9.4s-.7-.1-.9-.4c-.2-.2-.3-.6-.3-1.1v-1.3c0-.5.1-.9.3-1.1.2-.3.5-.4.9-.4s.7.1.9.4c.2.2.3.6.3 1.1v1.3zm-.8-1.4c0-.3 0-.6-.1-.7s-.2-.2-.3-.2-.2.1-.3.2-.1.4-.1.7v1.5c0 .3 0 .5.1.7s.2.2.3.2.2-.1.3-.2.1-.4.1-.7v-1.5z" fill="currentColor"/>
-            </svg>
-          </button>
-          
-          <!-- Play / Pause -->
-          <button class="m3-fab large" id="play-pause-btn">
-            <svg class="icon-m3" id="play-icon" viewBox="0 -960 960 960"><path d="M320-203v-554l440 277-440 277Z"/></svg>
-            <svg class="icon-m3" id="pause-icon" viewBox="0 -960 960 960" style="display: none;"><path d="M560-200v-560h160v560H560Zm-320 0v-560h160v560H240Z"/></svg>
-          </button>
-          
-          <!-- Fast Forward 10 words -->
-          <button class="m3-fab" id="ff-btn" title="Forward 10 words">
-            <svg class="icon-m3" viewBox="0 0 24 24">
-              <path d="M12 5V1l5 5-5 5V7c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6h2c0 4.4-3.6 8-8 8s-8-3.6-8-8 3.6-8 8-8zm1.9 11h-1v-4.2h-1.9v-.7L12.9 11h1v5zm2.6-1.5c0 .5-.1.9-.3 1.1-.2.3-.5.4-.9.4s-.7-.1-.9-.4c-.2-.2-.3-.6-.3-1.1v-1.3c0-.5.1-.9.3-1.1.2-.3.5-.4.9-.4s.7.1.9.4c.2.2.3.6.3 1.1v1.3zm-.8-1.4c0-.3 0-.6-.1-.7s-.2-.2-.3-.2-.2.1-.3.2-.1.4-.1.7v1.5c0 .3 0 .5.1.7s.2.2.3.2.2-.1.3-.2.1-.4.1-.7v-1.5z" fill="currentColor"/>
-            </svg>
-          </button>
-          
-          <!-- Next Chapter -->
-          <button class="m3-fab" id="next-chapter-btn" style="background-color: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container);" title="Next Chapter">
-            <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M660-240v-480h80v480h-80Zm-440 0 360-240-360-240v480Z"/></svg>
-          </button>
-        </div>
-        
-        <!-- Row 4: Music pill + volume + WPM -->
-        <!-- <div class="media-controls-row">
-          <button class="m3-btn tonal music-pill" id="music-pill-btn" title="Open Music Player">
-            <svg class="icon-m3" viewBox="0 -960 960 960" style="width:18px;height:18px;"><path d="M400-120q-66 0-113-47t-47-113q0-66 47-113t113-47q23 0 42.5 5.5T480-418v-422h240v160H560v520q0 66-47 113t-113 47Zm0-80q33 0 56.5-23.5T480-280v-54h-80q-33 0-56.5 23.5T320-254q0 33 23.5 56.5T400-200Zm0-80Z"/></svg>
-            <span id="music-pill-text">No music</span>
-          </button>
-          
-          <button class="m3-btn tonal mute-btn" id="music-mute-btn" title="Mute/Unmute">
-            <svg class="icon-m3" id="speaker-on-icon" viewBox="0 -960 960 960"><path d="M560-131v-68q104-28 172-113t68-188q0-105-68-190T560-803v-68q130 31 215 133t85 231q0 132-85 234T560-131ZM120-360v-240h160l200-200v640L280-360H120Zm420 48v-337q57 28 88.5 82.5T660-480q0 56-31.5 110.5T540-312Z"/></svg>
-            <svg class="icon-m3" id="speaker-off-icon" viewBox="0 -960 960 960" style="display:none;"><path d="M792-56 671-177q-26 23-57 39.5T551-113v-68q19-8 36-20.5t31-27.5L288-480v260L120-360v-240h62L56-792l56-56 736 736-56 56ZM680-485l-60-60q18-33 18-70t-18-70l60-60q30 42 30 90t-30 90ZM560-120 400-280l-56 56v62l200 200v-158Zm-80-520v-160l-90 90 90 70Zm-54 327Zm126-183Z"/></svg>
-          </button>
-          
-          <input type="range" class="volume-mini-slider" id="reader-music-volume" min="0" max="100" value="50">
-          
-          <button class="speed-bubble" id="wpm-display" title="Adjust WPM">250 WPM</button>
-        </div> -->
+        <!-- Combined Main Row -->
+<div class="text-controls-row state-wide" id="controls-row-layout">
 
-        <!-- Row 4: WPM + volume elements + Music pill -->
-        <div class="media-controls-row">
-          <!-- 1. Speed Bubble (Left-most) -->
-          <button class="speed-bubble" id="wpm-display" title="Adjust WPM">250 WPM</button>
-          
-          <!-- 2. Mute/Unmute Button -->
-          <button class="m3-btn tonal mute-btn" id="music-mute-btn" title="Mute/Unmute">
-            <svg class="icon-m3" id="speaker-on-icon" viewBox="0 -960 960 960"><path d="M560-131v-68q104-28 172-113t68-188q0-105-68-190T560-803v-68q130 31 215 133t85 231q0 132-85 234T560-131ZM120-360v-240h160l200-200v640L280-360H120Zm420 48v-337q57 28 88.5 82.5T660-480q0 56-31.5 110.5T540-312Z"/></svg>
-            <svg class="icon-m3" id="speaker-off-icon" viewBox="0 -960 960 960" style="display:none;"><path d="M792-56 671-177q-26 23-57 39.5T551-113v-68q19-8 36-20.5t31-27.5L288-480v260L120-360v-240h62L56-792l56-56 736 736-56 56ZM680-485l-60-60q18-33 18-70t-18-70l60-60q30 42 30 90t-30 90ZM560-120 400-280l-56 56v62l200 200v-158Zm-80-520v-160l-90 90 90 70Zm-54 327Zm126-183Z"/></svg>
-          </button>
-          
-          <!-- 3. Volume Slider -->
-          <input type="range" class="volume-mini-slider" id="reader-music-volume" min="0" max="100" value="50">
-          
-          <!-- 4. Music Pill (Right-most) -->
-          <button class="m3-btn tonal music-pill" id="music-pill-btn" title="Open Music Player">
-            <svg class="icon-m3" viewBox="0 -960 960 960" style="width:18px;height:18px;"><path d="M400-120q-66 0-113-47t-47-113q0-66 47-113t113-47q23 0 42.5 5.5T480-418v-422h240v160H560v520q0 66-47 113t-113 47Zm0-80q33 0 56.5-23.5T480-280v-54h-80q-33 0-56.5 23.5T320-254q0 33 23.5 56.5T400-200Zm0-80Z"/></svg>
-            <span id="music-pill-text">No music</span>
-          </button>
+  <!-- Block 1: WPM -->
+  <div class="control-group-left" id="group-left">
+    <button class="speed-bubble" id="wpm-display" title="Adjust WPM">250 WPM</button>
+  </div>
+  
+  <!-- Block 2: Core TTS Playback Controllers (Always stays centered) -->
+  <div class="control-group-center" id="group-center">
+    <button class="m3-fab" id="prev-chapter-btn" style="background-color: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container);" title="Previous Chapter">
+      <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M220-240v-480h80v480h-80Zm520 0L380-480l360-240v480Z"/></svg>
+    </button>
+    
+    <button class="m3-fab" id="rewind-btn" title="Rewind 10 words">
+      <svg class="icon-m3" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6H4c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8zm-1.1 11H10v-3.3L9 13v-.7h1.9v4.2zm2.6-1.5c0 .5-.1.9-.3 1.1-.2.3-.5.4-.9.4s-.7-.1-.9-.4c-.2-.2-.3-.6-.3-1.1v-1.3c0-.5.1-.9.3-1.1.2-.3.5-.4.9-.4s.7.1.9.4c.2.2.3.6.3 1.1v1.3zm-.8-1.4c0-.3 0-.6-.1-.7s-.2-.2-.3-.2-.2.1-.3.2-.1.4-.1.7v1.5c0 .3 0 .5.1.7s.2.2.3.2.2-.1.3-.2.1-.4.1-.7v-1.5z" fill="currentColor"/></svg>
+    </button>
+    
+    <button class="m3-fab large" id="play-pause-btn">
+      <svg class="icon-m3" id="play-icon" viewBox="0 -960 960 960"><path d="M320-203v-554l440 277-440 277Z"/></svg>
+      <svg class="icon-m3" id="pause-icon" viewBox="0 -960 960 960" style="display: none;"><path d="M560-200v-560h160v560H560Zm-320 0v-560h160v560H240Z"/></svg>
+    </button>
+    
+    <button class="m3-fab" id="ff-btn" title="Forward 10 words">
+      <svg class="icon-m3" viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6h2c0 4.4-3.6 8-8 8s-8-3.6-8-8 3.6-8 8-8zm1.9 11h-1v-4.2h-1.9v-.7L12.9 11h1v5zm2.6-1.5c0 .5-.1.9-.3 1.1-.2.3-.5.4-.9.4s-.7-.1-.9-.4c-.2-.2-.3-.6-.3-1.1v-1.3c0-.5.1-.9.3-1.1.2-.3.5-.4.9-.4s.7.1.9.4c.2.2.3.6.3 1.1v1.3zm-.8-1.4c0-.3 0-.6-.1-.7s-.2-.2-.3-.2-.2.1-.3.2-.1.4-.1.7v1.5c0 .3 0 .5.1.7s.2.2.3.2.2-.1.3-.2.1-.4.1-.7v-1.5z" fill="currentColor"/></svg>
+    </button>
+    
+    <button class="m3-fab" id="next-chapter-btn" style="background-color: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container);" title="Next Chapter">
+      <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M660-240v-480h80v480h-80Zm-440 0 360-240-360-240v480Z"/></svg>
+    </button>
+  </div>
 
-        </div>
+  <!-- Block 3: Audio & Volume Tools -->
+  <div class="control-group-right" id="group-right">
+    <button class="m3-btn tonal mute-btn" id="music-mute-btn" title="Mute/Unmute">
+      <svg class="icon-m3" id="speaker-on-icon" viewBox="0 -960 960 960"><path d="M560-131v-68q104-28 172-113t68-188q0-105-68-190T560-803v-68q130 31 215 133t85 231q0 132-85 234T560-131ZM120-360v-240h160l200-200v640L280-360H120Zm420 48v-337q57 28 88.5 82.5T660-480q0 56-31.5 110.5T540-312Z"/></svg>
+      <svg class="icon-m3" id="speaker-off-icon" viewBox="0 -960 960 960" style="display:none;"><path d="M792-56 671-177q-26 23-57 39.5T551-113v-68q19-8 36-20.5t31-27.5L288-480v260L120-360v-240h62L56-792l56-56 736 736-56 56ZM680-485l-60-60q18-33 18-70t-18-70l60-60q30 42 30 90t-30 90ZM560-120 400-280l-56 56v62l200 200v-158Zm-80-520v-160l-90 90 90 70Zm-54 327Zm126-183Z"/></svg>
+    </button>
+    <input type="range" class="volume-mini-slider" id="reader-music-volume" min="0" max="100" value="50">
+    <button class="m3-btn tonal music-pill" id="music-pill-btn" title="Open Music Player">
+      <svg class="icon-m3" viewBox="0 -960 960 960" style="width:18px;height:18px;"><path d="M400-120q-66 0-113-47t-47-113q0-66 47-113t113-47q23 0 42.5 5.5T480-418v-422h240v160H560v520q0 66-47 113t-113 47Zm0-80q33 0 56.5-23.5T480-280v-54h-80q-33 0-56.5 23.5T320-254q0 33 23.5 56.5T400-200Zm0-80Z"/></svg>
+      <span id="music-pill-text">No music</span>
+    </button>
+  </div>
+
+</div>
       </div>
     </section>
 
@@ -1344,9 +1406,9 @@
       <button class="m3-fab" id="music-next-btn" title="Next">
         <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M660-240v-480h80v480h-80Zm-440 0 360-240-360-240v480Z"/></svg>
       </button>
-      <button class="m3-fab" id="music-shuffle-btn" title="Shuffle" style="background-color: transparent; border: 1px solid var(--md-sys-color-outline); color: var(--md-sys-color-on-surface-variant);">
+      <!-- <button class="m3-fab" id="music-shuffle-btn" title="Shuffle" style="background-color: transparent; border: 1px solid var(--md-sys-color-outline); color: var(--md-sys-color-on-surface-variant);">
         <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M560-160v-80h144L518-426l57-57 185 185v-142h80v280H560Zm-326-14L80-328l56-56 154 154 56-56-154-154 56-56 210 210-58 58-56-56-144 144Zm284-252-57-57 185-185H600v-80h280v280h-80v-142L602-514Z" fill="currentColor"></path></svg>
-      </button>
+      </button> -->
     </div>
 
     <!-- Volume slider -->
@@ -1357,9 +1419,20 @@
       <span style="font-size: 12px; min-width: 32px; text-align: right;" id="music-sheet-volume-label">50%</span>
     </div>
     
-    <!-- Queue list -->
-    <h4 style="font-size: 14px; font-weight: 500; color: var(--md-sys-color-primary); margin-bottom: 8px;">Queue</h4>
-    <p style="font-size: 11px; opacity: 0.6; margin-bottom: 8px;">Drag items to reorder playback.</p>
+    <!-- Queue Header Row with Shuffle Button -->
+    <div class="queue-header-row" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+      <div>
+        <h4 style="font-size: 14px; font-weight: 500; color: var(--md-sys-color-primary); margin: 0;">Queue</h4>
+        <p style="font-size: 11px; opacity: 0.6; margin: 2px 0 0 0;">Drag items to reorder playback.</p>
+      </div>
+      
+      <!-- Moved Shuffle Button Here -->
+      <button class="m3-fab" id="music-shuffle-btn" title="Shuffle" style="background-color: transparent; border: 1px solid var(--md-sys-color-outline); color: var(--md-sys-color-on-surface-variant); width: 40px; height: 40px; min-width: 40px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 12px;">
+        <svg class="icon-m3" viewBox="0 -960 960 960" style="width: 20px; height: 20px;"><path d="M560-160v-80h144L518-426l57-57 185 185v-142h80v280H560Zm-326-14L80-328l56-56 154 154 56-56-154-154 56-56 210 210-58 58-56-56-144 144Zm284-252-57-57 185-185H600v-80h280v280h-80v-142L602-514Z" fill="currentColor"></path></svg>
+      </button>
+    </div>
+    
+    <!-- Queue list container -->
     <div id="music-queue-list" style="max-height: 240px; overflow-y: auto;">
       <!-- Rendered dynamically -->
     </div>
