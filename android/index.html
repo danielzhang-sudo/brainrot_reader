@@ -695,7 +695,8 @@
       flex-shrink: 0;
       border: none;
       font-family: inherit;
-      margin-left: auto;
+      margin-right: auto;
+      height: 36px;
     }
     .speed-bubble:active {
       background-color: var(--md-sys-color-primary-container);
@@ -769,10 +770,12 @@
       gap: 8px;
       margin-bottom: 12px;
       width: 100%;
+      box-sizing: border-box;
     }
     
     .reader-select-dropdown {
       flex: 1;
+      min-width: 0;
       background-color: var(--md-sys-color-surface-variant);
       color: var(--md-sys-color-on-surface-variant);
       border: 1px solid var(--md-sys-color-outline-variant);
@@ -783,6 +786,11 @@
       outline: none;
       cursor: pointer;
       transition: background-color 0.3s ease, border-color 0.3s ease;
+
+      /* 2. Truncation rules to fade/clip the long titles with a '...' */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     
     /* OLED Black Mode overrides */
@@ -1166,7 +1174,7 @@
         </div>
         
         <!-- Row 4: Music pill + volume + WPM -->
-        <div class="media-controls-row">
+        <!-- <div class="media-controls-row">
           <button class="m3-btn tonal music-pill" id="music-pill-btn" title="Open Music Player">
             <svg class="icon-m3" viewBox="0 -960 960 960" style="width:18px;height:18px;"><path d="M400-120q-66 0-113-47t-47-113q0-66 47-113t113-47q23 0 42.5 5.5T480-418v-422h240v160H560v520q0 66-47 113t-113 47Zm0-80q33 0 56.5-23.5T480-280v-54h-80q-33 0-56.5 23.5T320-254q0 33 23.5 56.5T400-200Zm0-80Z"/></svg>
             <span id="music-pill-text">No music</span>
@@ -1180,6 +1188,28 @@
           <input type="range" class="volume-mini-slider" id="reader-music-volume" min="0" max="100" value="50">
           
           <button class="speed-bubble" id="wpm-display" title="Adjust WPM">250 WPM</button>
+        </div> -->
+
+        <!-- Row 4: WPM + volume elements + Music pill -->
+        <div class="media-controls-row">
+          <!-- 1. Speed Bubble (Left-most) -->
+          <button class="speed-bubble" id="wpm-display" title="Adjust WPM">250 WPM</button>
+          
+          <!-- 2. Mute/Unmute Button -->
+          <button class="m3-btn tonal mute-btn" id="music-mute-btn" title="Mute/Unmute">
+            <svg class="icon-m3" id="speaker-on-icon" viewBox="0 -960 960 960"><path d="M560-131v-68q104-28 172-113t68-188q0-105-68-190T560-803v-68q130 31 215 133t85 231q0 132-85 234T560-131ZM120-360v-240h160l200-200v640L280-360H120Zm420 48v-337q57 28 88.5 82.5T660-480q0 56-31.5 110.5T540-312Z"/></svg>
+            <svg class="icon-m3" id="speaker-off-icon" viewBox="0 -960 960 960" style="display:none;"><path d="M792-56 671-177q-26 23-57 39.5T551-113v-68q19-8 36-20.5t31-27.5L288-480v260L120-360v-240h62L56-792l56-56 736 736-56 56ZM680-485l-60-60q18-33 18-70t-18-70l60-60q30 42 30 90t-30 90ZM560-120 400-280l-56 56v62l200 200v-158Zm-80-520v-160l-90 90 90 70Zm-54 327Zm126-183Z"/></svg>
+          </button>
+          
+          <!-- 3. Volume Slider -->
+          <input type="range" class="volume-mini-slider" id="reader-music-volume" min="0" max="100" value="50">
+          
+          <!-- 4. Music Pill (Right-most) -->
+          <button class="m3-btn tonal music-pill" id="music-pill-btn" title="Open Music Player">
+            <svg class="icon-m3" viewBox="0 -960 960 960" style="width:18px;height:18px;"><path d="M400-120q-66 0-113-47t-47-113q0-66 47-113t113-47q23 0 42.5 5.5T480-418v-422h240v160H560v520q0 66-47 113t-113 47Zm0-80q33 0 56.5-23.5T480-280v-54h-80q-33 0-56.5 23.5T320-254q0 33 23.5 56.5T400-200Zm0-80Z"/></svg>
+            <span id="music-pill-text">No music</span>
+          </button>
+
         </div>
       </div>
     </section>
