@@ -396,11 +396,13 @@ class BrainrotEngine {
         }
       }, 600);
     }
+    this.triggerUIUpdate();
   }
 
   pause() {
     this.cleanupTicker();
     this.isPlaying = false;
+    this.triggerUIUpdate();
   }
 
   runVisualTimerTick() {

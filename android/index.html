@@ -1170,21 +1170,49 @@
       align-items: center;
       justify-content: center;
       min-height: 40px;
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--md-sys-color-primary);
+      position: relative;
       font-family: 'Outfit', sans-serif;
-      letter-spacing: 2px;
     }
-    
-    .mini-player-center .orp-prefix,
-    .mini-player-center .orp-suffix {
+
+    .mini-player-word-wrapper {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .mini-player-left-block {
+      position: absolute;
+      top: 50%;
+      right: 60%;
+      width: 40%;
+      text-align: right;
+      white-space: pre;
+      overflow: visible;
+      transform: translate(-0.25ch, -50%);
       font-size: 20px;
       font-weight: 200;
       color: var(--md-sys-color-on-surface-variant);
+      letter-spacing: 2px;
     }
-    
-    .mini-player-center .orp-char {
+
+    .mini-player-right-block {
+      position: absolute;
+      top: 50%;
+      left: 40%;
+      width: 60%;
+      text-align: left;
+      white-space: pre;
+      overflow: visible;
+      transform: translate(-0.25ch, -50%);
+      font-size: 20px;
+      font-weight: 200;
+      color: var(--md-sys-color-on-surface-variant);
+      letter-spacing: 2px;
+    }
+
+    .mini-player-right-block .orp-char {
       font-size: 20px;
       font-weight: 900;
       color: var(--md-sys-color-primary);
@@ -1233,7 +1261,10 @@
       </button>
     </div>
     <div class="mini-player-center">
-      <span class="orp-prefix" id="mini-orp-prefix"></span><span class="orp-char" id="mini-orp-char">a</span><span class="orp-suffix" id="mini-orp-suffix"></span>
+      <div class="mini-player-word-wrapper">
+        <div class="mini-player-left-block"><span id="mini-orp-prefix"></span></div>
+        <div class="mini-player-right-block"><span class="orp-char" id="mini-orp-char">a</span><span id="mini-orp-suffix"></span></div>
+      </div>
     </div>
     <div class="mini-player-right">
       <button class="m3-fab" id="mini-player-mute" title="Mute TTS" style="background-color: transparent; border: 1px solid var(--md-sys-color-outline); color: var(--md-sys-color-on-surface-variant);">
@@ -1706,8 +1737,7 @@
         if (engine.currentChapterIdx + 1 < engine.chapters.length) {
           await loadNewChapter(engine.currentChapterIdx + 1, true);
         } else {
-          document.getElementById('play-icon').style.display = 'block';
-          document.getElementById('pause-icon').style.display = 'none';
+          updatePlayPauseUI();
         }
       };
       engine.onMusicUpdate = () => updateMusicUI();
@@ -1724,6 +1754,13 @@
           
           // Update mini player display on tab switch
           updateMiniPlayerDisplay();
+
+          // Toggle fullscreen button visibility based on tab
+          if (target === 'screen-reader') {
+            fullscreenBtn.style.display = 'inline-flex';
+          } else {
+            fullscreenBtn.style.display = 'none';
+          }
         });
       });
 
@@ -1778,8 +1815,7 @@
         document.getElementById("seek-percentage-display").textContent = "0%";
         document.getElementById("chapter-nav-display").textContent = "Chapter -- of --";
         seekBar.value = 0;
-        document.getElementById('play-icon').style.display = 'block';
-        document.getElementById('pause-icon').style.display = 'none';
+        updatePlayPauseUI();
         
         localStorage.removeItem("m3-active-book");
       }
@@ -1922,8 +1958,7 @@
           isHolding = true;
           if (engine.isPlaying) {
             engine.pause();
-            document.getElementById('play-icon').style.display = 'block';
-            document.getElementById('pause-icon').style.display = 'none';
+            updatePlayPauseUI();
           }
         }, 200);
       }
@@ -1935,8 +1970,7 @@
           isHolding = false;
           if (!engine.isPlaying && engine.words.length > 0) {
             engine.play();
-            document.getElementById('play-icon').style.display = 'none';
-            document.getElementById('pause-icon').style.display = 'block';
+            updatePlayPauseUI();
           }
         }
       }
@@ -2070,13 +2104,10 @@
       playPauseBtn.addEventListener("click", () => {
         if (engine.isPlaying) {
           engine.pause();
-          document.getElementById('play-icon').style.display = 'block';
-          document.getElementById('pause-icon').style.display = 'none';
         } else {
           engine.play();
-          document.getElementById('play-icon').style.display = 'none';
-          document.getElementById('pause-icon').style.display = 'block';
         }
+        updatePlayPauseUI();
       });
 
       document.getElementById("rewind-btn").addEventListener("click", () => engine.rewind());
@@ -2128,6 +2159,7 @@
         } else {
           engine.play();
         }
+        updatePlayPauseUI();
       });
 
       document.getElementById("mini-player-mute").addEventListener("click", () => {
@@ -2623,8 +2655,7 @@
         if (!engine.selectedBook || engine.chapters.length === 0) return;
         try {
           engine.pause(); // Pause playback if playing
-          document.getElementById('play-icon').style.display = 'block';
-          document.getElementById('pause-icon').style.display = 'none';
+          updatePlayPauseUI();
           
           document.getElementById("rsvp-placeholder-text").textContent = "Parsing and unzipping chapter words...";
           document.getElementById("rsvp-word-render").style.display = "none";
@@ -2668,8 +2699,7 @@
           if (triggerPlay && engine.autoPlayChapter) {
             setTimeout(() => {
               engine.play();
-              document.getElementById('play-icon').style.display = 'none';
-              document.getElementById('pause-icon').style.display = 'block';
+              updatePlayPauseUI();
             }, 300);
           }
         } catch (err) {
@@ -2717,8 +2747,11 @@
         const miniPlayIcon = document.getElementById("mini-player-play-icon");
         const miniMuteIcon = document.getElementById("mini-player-mute-icon");
         
-        // Show mini player if we have a book loaded and TTS is active or paused
-        if (engine.selectedBook && engine.words.length > 0) {
+        const activeScreen = document.querySelector('.screen.active');
+        const isReaderTab = activeScreen && activeScreen.id === 'screen-reader';
+        
+        // Show mini player if we have a book loaded and TTS is active or paused, and NOT on reader tab
+        if (engine.selectedBook && engine.words.length > 0 && !isReaderTab) {
           miniPlayer.classList.add("active");
           
           // Update the word display
@@ -2756,6 +2789,25 @@
         }
       }
 
+      function updatePlayPauseUI() {
+        const playIcon = document.getElementById('play-icon');
+        const pauseIcon = document.getElementById('pause-icon');
+        const miniPlayIcon = document.getElementById('mini-player-play-icon');
+        const miniPlayPauseBtn = document.getElementById("mini-player-play-pause");
+
+        if (engine.isPlaying) {
+          playIcon.style.display = 'none';
+          pauseIcon.style.display = 'block';
+          miniPlayIcon.innerHTML = '<path d="M560-200v-560h160v560H560Zm-320 0v-560h160v560H240Z" fill="currentColor"/>';
+          miniPlayPauseBtn.title = "Pause";
+        } else {
+          playIcon.style.display = 'block';
+          pauseIcon.style.display = 'none';
+          miniPlayIcon.innerHTML = '<path d="M320-203v-554l440 277-440 277Z" fill="currentColor"/>';
+          miniPlayPauseBtn.title = "Play";
+        }
+      }
+
       // -------------------------------------------------------------
       // ASYNCHRONOUS INITIALIZATION (Resilient & Non-blocking)
       // -------------------------------------------------------------
@@ -2784,6 +2836,14 @@
             engine.applyMusicVolume();
           }
           updateMusicUI();
+
+          // Set initial fullscreen button state
+          const initialActiveScreen = document.querySelector('.screen.active');
+          if (initialActiveScreen && initialActiveScreen.id === 'screen-reader') {
+            fullscreenBtn.style.display = 'inline-flex';
+          } else {
+            fullscreenBtn.style.display = 'none';
+          }
 
           // Hook dynamic voice loading for mobile viewports
           if (window.speechSynthesis) {
