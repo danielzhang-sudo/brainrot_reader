@@ -696,29 +696,81 @@
     }
 
     .music-pill {
-      flex-shrink: 0;             /* La píldora no se deforma para mantener legible el texto */
+      position: relative;         /* CLAVE: Eje para los límites internos */
+      display: inline-flex;       
+      align-items: center;        /* Centrado vertical perfecto */
+      justify-content: flex-start;
+      flex: 1 1 auto;
+      min-width: 36px;            
       max-width: 140px;
       height: 36px;
       border-radius: 18px;
-      padding: 0 14px;
+      padding: 0 0 0 14px;        /* Padding izquierdo para el icono */
       font-size: 13px;
       font-weight: 500;
       white-space: nowrap;
+      overflow: hidden;           /* CLAVE: Imprescindible para el recorte general */
+      transition: all 0.1s ease;
+    }
+
+    /* RESTAURADO: Tamaño y posición fija del icono */
+    .music-pill svg {
+      width: 18px;                /* Tamaño original restaurado */
+      height: 18px;               /* Tamaño original restaurado */
+      flex-shrink: 0;             /* No se encoge */
+      margin-right: 0px;          /* Espacio fijo con la zona de texto */
+      z-index: 3;                 /* Por encima de la zona de recorte */
+    }
+
+    /* CONTENEDOR DE RECORTE (La "Ventana" donde aparece el texto) */
+    .music-pill .text-marquee-container {
+      flex: 1 1 auto;
+      height: 100%;               /* Ocupa el 100% de la altura del botón */
+      display: inline-flex;       /* Convertido a flex para heredar el centrado vertical */
+      align-items: center;        /* ¡Alinea el texto al centro vertical exacto! */
+      overflow: hidden;           
+      position: relative;
+      
+      margin-left: 0px;           /* Zona de inicio izquierda: pegado al icono */
+      margin-right: 12px;
+
+      /* ZONAS DE INICIO Y FIN: Dejamos un margen de seguridad a la derecha 
+         para que el texto empiece a ocultarse limpiamente antes de tocar la curva */
+      padding-right: 1px;
+      z-index: 2;
+    }
+
+    /* EL TEXTO QUE SE DESLIZA */
+    #music-pill-text {
+      flex: 1 1 auto;
       overflow: hidden;
-      text-overflow: ellipsis;
-      justify-content: flex-start;
+      display: inline-block;
+      white-space: nowrap;
+      width: auto;
+      
+      /* MECÁNICA: El texto empieza desde el borde derecho de su contenedor de recorte */
+      animation: deslizar-texto-marquee 8s linear infinite;
+    }
+
+    /* --- ANIMACIÓN DEL DESLIZAMIENTO (Optimizada para los nuevos límites) --- */
+    @keyframes deslizar-texto-marquee {
+      0% {
+        /* Empieza justo donde acaba el icono + margen */
+        transform: translateX(100%);
+      }
+      100% {
+        /* Se desplaza hacia la izquierda hasta esconderse por completo de la ventana */
+        transform: translateX(-100%);
+      }
     }
 
     /* --- EL CONTROL DE VOLUMEN (Mecánica de encogimiento prioritario) --- */
     .volume-mini-slider {
       -webkit-appearance: none;
       appearance: none;
-      
-      /* En pantallas gigantes arranca en 100px (no tan largo para evitar invadir espacio) */
-      width: 100px;               
-      flex: 0 1 auto;             /* Permite encogerse pero no estallarse sin control */
-      min-width: 40px;            /* Suelo límite antes de pedir el colapso */
-      
+      width: 100px; 
+      flex: 0 1 auto;            /* Flex-shrink por defecto es 1, permite encogerse */
+      min-width: 40px;
       height: 4px;
       border-radius: 2px;
       background: var(--md-sys-color-outline-variant);
@@ -744,37 +796,53 @@
     @media (max-width: 680px) {
       .text-controls-row {
         flex-wrap: wrap;
-        justify-content: center;
-        row-gap: 12px;
+        justify-content: center; /* Centra los bloques en la fila inferior */
+        row-gap: 16px;
       }
 
-      /* El reproductor TTS se adueña de la fila superior */
+      /* El reproductor TTS se adueña de la fila superior ocupando el 100% */
       .control-group-center {
         width: 100%;
         order: 1;
         margin: 0 0 4px 0;
       }
 
-      /* WPM y volumen bajan juntos a la segunda fila, uno al lado del otro */
+      /* WPM y volumen bajan juntos a la segunda fila y se comportan como elementos en línea */
       .control-group-left {
         width: auto;
-        flex: 0 1 auto;
+        flex: 0 0 auto;        /* Evita que crezca o empuje */
         order: 2;
         justify-content: center;
-        margin-right: 16px;
+        margin: 0;              /* Limpiamos márgenes viejos */
       }
 
       .control-group-right {
         width: auto;
-        flex: 0 1 auto;
+        flex: 0 0 auto;        /* Evita que crezca o empuje */
         order: 3;
         justify-content: center;
-        margin-left: 16px;
+        margin: 0;              /* Limpiamos márgenes viejos */
+        gap: 12px;              /* El espacio exacto entre el Slider, Mute y la Píldora */
       }
 
-      /* En móviles le devolvemos un tamaño cómodo al slider */
+      /* IMPORTANTE: Separación uniforme entre el bloque WPM y el bloque de Volumen */
+      .text-controls-row .control-group-left {
+        margin-right: 12px;     /* Hace que el espacio entre WPM y Mute sea igual al gap general */
+      }
+
+      /* El slider ahora es más elástico: arranca en 80px y se encoge hasta 40px */
       .volume-mini-slider {
         width: 80px;
+        flex: 1 1 auto;        /* Permite que se adapte activamente al espacio disponible */
+        min-width: 40px;
+      }
+    }
+
+    /* NUEVO PUNTO DE QUIEBRE: Cuando el espacio físico real se agota por completo en móviles 
+       muy pequeños, el slider desaparece elegantemente */
+    @media (max-width: 480px) {
+      .control-group-right .volume-mini-slider {
+        display: none;
       }
     }
 
@@ -1263,8 +1331,11 @@
           </button>
           <input type="range" class="volume-mini-slider" id="reader-music-volume" min="0" max="100" value="50">
           <button class="m3-btn tonal music-pill" id="music-pill-btn" title="Open Music Player">
-            <svg class="icon-m3" viewBox="0 -960 960 960" style="width:18px;height:18px;"><path d="M400-120q-66 0-113-47t-47-113q0-66 47-113t113-47q23 0 42.5 5.5T480-418v-422h240v160H560v520q0 66-47 113t-113 47Zm0-80q33 0 56.5-23.5T480-280v-54h-80q-33 0-56.5 23.5T320-254q0 33 23.5 56.5T400-200Zm0-80Z"/></svg>
-            <span id="music-pill-text">No music</span>
+            <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M400-120q-66 0-113-47t-47-113q0-66 47-113t113-47q23 0 42.5 5.5T480-418v-422h240v160H560v520q0 66-47 113t-113 47Zm0-80q33 0 56.5-23.5T480-280v-54h-80q-33 0-56.5 23.5T320-254q0 33 23.5 56.5T400-200Zm0-80Z"/></svg>
+            
+            <span class="text-marquee-container">
+              <span id="music-pill-text">No music</span>
+            </span>
           </button>
         </div>
 
