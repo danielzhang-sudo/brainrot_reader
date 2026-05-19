@@ -1071,7 +1071,7 @@
   <div class="mini-tts-player" id="mini-tts-player">
     <div class="mini-player-left">
       <button class="m3-fab" id="mini-player-play-pause" title="Play/Pause" style="background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container);">
-        <svg class="icon-m3" viewBox="0 -960 960 960" id="mini-player-play-icon"><path d="M360-360v240h80v-240h-80Zm160-80v320h80v-320h-80Z" fill="currentColor"/></svg>
+        <svg class="icon-m3" viewBox="0 -960 960 960" id="mini-player-play-icon"><path d="M560-200v-560h160v560H560Zm-320 0v-560h160v560H240Z" fill="currentColor"/></svg>
       </button>
     </div>
     <div class="mini-player-center">
@@ -2563,10 +2563,10 @@
           
           // Update play/pause button icon
           if (engine.isPlaying) {
-            miniPlayIcon.innerHTML = '<path d="M360-360v240h80v-240h-80Zm160-80v320h80v-320h-80Z" fill="currentColor"/>';
+            miniPlayIcon.innerHTML = '<path d="M560-200v-560h160v560H560Zm-320 0v-560h160v560H240Z" fill="currentColor"/>';
             miniPlayPauseBtn.title = "Pause";
           } else {
-            miniPlayIcon.innerHTML = '<path d="M320-200v-560l360 280-360 280Z" fill="currentColor"/>';
+            miniPlayIcon.innerHTML = '<path d="M320-203v-554l440 277-440 277Z" fill="currentColor"/>';
             miniPlayPauseBtn.title = "Play";
           }
           
