@@ -673,22 +673,17 @@
 
     /* Botón WPM: Se desplaza de forma natural hacia el centro al reducirse su contenedor */
     .speed-bubble {
-      background-color: var(--md-sys-color-secondary-container);
-      color: var(--md-sys-color-on-secondary-container);
-      padding: 6px 14px;
-      border-radius: 20px;
+      padding: 0 14px;            /* Ajustado igual que la music-pill */
+      border-radius: 18px;        /* Mismo radio de curva que la music-pill */
       font-weight: 500;
       font-size: 13px;
       cursor: pointer;
-      transition: background-color 0.2s ease;
       flex-shrink: 0;
-      border: none;
       font-family: inherit;
       height: 36px;
-      margin-left: 0;             /* Pegado al extremo izquierdo en pantallas anchas */
-    }
-    .speed-bubble:active {
-      background-color: var(--md-sys-color-primary-container);
+      margin-left: 0; 
+      justify-content: center;    /* Centra el texto por si acaso */
+      white-space: nowrap;
     }
 
     /* Ajustes de botones de audio */
@@ -1232,7 +1227,8 @@
 
         <!-- Block 1: WPM -->
         <div class="control-group-left" id="group-left">
-          <button class="speed-bubble" id="wpm-display" title="Adjust WPM">250 WPM</button>
+          <!-- Añadimos las clases m3-btn y tonal, y mantenemos speed-bubble solo para pequeños ajustes -->
+          <button class="m3-btn tonal speed-bubble" id="wpm-display" title="Adjust WPM">250 WPM</button>
         </div>
         
         <!-- Block 2: Core TTS Playback Controllers (Always stays centered) -->
