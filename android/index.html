@@ -10,6 +10,7 @@
   <meta name="theme-color" id="meta-theme-color" content="#1C1B1F">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
   
   <!-- Google Fonts - Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1242,6 +1243,11 @@
   <header class="top-app-bar">
     <h1 id="app-title-display">Brainrot Reader</h1>
     <div style="display: flex; gap: 8px; align-items: center;">
+      <!-- PWA Install Button -->
+      <button class="m3-btn filled" id="pwa-install-btn" style="display: none; padding: 0 14px; height: 36px; border-radius: 18px; gap: 6px;" title="Install App">
+        <svg class="icon-m3" viewBox="0 -960 960 960" style="width: 20px; height: 20px;"><path d="M480-120 320-280l56-56 64 64v-166h80v166l64-64 56 56-160 160ZM240-600h480v-80H240v80Zm120 440v-80h-80q-33 0-56.5-23.5T200-320v-320q0-33 23.5-56.5T280-720h400q33 0 56.5 23.5T760-640v320q0 33-23.5 56.5T680-240h-80v80H360Z"/></svg>
+        <span style="font-size: 13px; font-weight: 500;">Install</span>
+      </button>
       <!-- Enter Fullscreen Focus Button -->
       <button class="m3-btn outlined" id="fullscreen-trigger-btn" style="padding: 0 10px; height: 36px; border-radius: 18px;" title="Focus Mode">
         <svg class="icon-m3" viewBox="0 -960 960 960"><path d="M120-120v-200h80v120h120v80H120Zm520 0v-80h120v-120h80v200H640ZM200-640v-120h120v-80H120v200h80Zm440 0v-200h200v200h-80v-120H640Z"/></svg>
@@ -1638,6 +1644,33 @@
           .catch(err => console.error('Service worker installation failure:', err));
       });
     }
+
+    // PWA Install Prompt capture and UI binding
+    let deferredInstallPrompt = null;
+    const pwaInstallBtn = document.getElementById('pwa-install-btn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      if (pwaInstallBtn) pwaInstallBtn.style.display = 'inline-flex';
+    });
+
+    if (pwaInstallBtn) {
+      pwaInstallBtn.addEventListener('click', async () => {
+        if (!deferredInstallPrompt) return;
+        deferredInstallPrompt.prompt();
+        const { outcome } = await deferredInstallPrompt.userChoice;
+        if (outcome === 'accepted') {
+          pwaInstallBtn.style.display = 'none';
+        }
+        deferredInstallPrompt = null;
+      });
+    }
+
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      if (pwaInstallBtn) pwaInstallBtn.style.display = 'none';
+    });
 
     // Material You dynamic color theme generator applicator
     const colorSeedButtons = document.querySelectorAll('.color-seed-btn');
